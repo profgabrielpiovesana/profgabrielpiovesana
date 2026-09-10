@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prof. Gabriel Piovesana — Física e Matemática</title>
+</head>
+<body style="margin:0;">
+<!-- ============================================================
+     SITE PROF. GABRIEL PIOVESANA — v2.0
+     Substitua os placeholders marcados com {{ }} pelos seus dados
+     ============================================================ -->
+<div id="gp-site">
+
+<style>
+  #gp-site {
+    --azul: #54B0FE;
+    --azul-escuro: #1E5FA8;
+    --preto: #14171A;
+    --cinza: #6B7280;
+    --cinza-claro: #F4F6F9;
+    --branco: #FFFFFF;
+    --borda: #E3E8F0;
+
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    color: var(--preto);
+    background: var(--branco);
+    line-height: 1.55;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  #gp-site * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #gp-site h1, #gp-site h2, #gp-site h3 {
+    font-family: 'Georgia', serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  #gp-site .gp-sans {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  #gp-site section {
+    padding: 88px 8vw;
+  }
+
+  @media (max-width: 720px) {
+    #gp-site section { padding: 56px 6vw; }
+  }
+
+  /* ---------- HERO ---------- */
+  #gp-hero {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 48px;
+    align-items: center;
+    background: var(--cinza-claro);
+    min-height: 92vh;
+    padding: 64px 8vw;
+  }
+  @media (max-width: 860px) {
+    #gp-hero { grid-template-columns: 1fr; text-align: center; min-height: auto; }
+  }
+  #gp-hero .gp-eyebrow {
+    font-family: -apple-system, sans-serif;
+    font-size: 0.95rem;
+    color: var(--azul-escuro);
+    margin-bottom: 18px;
+  }
+  #gp-hero h1 {
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    line-height: 1.08;
+    margin-bottom: 20px;
+  }
+  #gp-hero p.gp-lede {
+    font-family: -apple-system, sans-serif;
+    font-size: 1.15rem;
+    color: var(--cinza);
+    max-width: 46ch;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 860px) {
+    #gp-hero p.gp-lede { margin-left: auto; margin-right: auto; }
+  }
+  #gp-hero .gp-hero-actions {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  @media (max-width: 860px) {
+    #gp-hero .gp-hero-actions { justify-content: center; }
+  }
+  #gp-hero .gp-photo-wrap {
+    position: relative;
+  }
+  #gp-hero .gp-photo-wrap img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+  }
+
+  /* ---------- BOTÕES ---------- */
+  #gp-site .gp-btn {
+    font-family: -apple-system, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 14px 26px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  #gp-site .gp-btn:hover { transform: translateY(-1px); }
+  #gp-site .gp-btn-primary {
+    background: var(--azul);
+    color: var(--preto);
+  }
+  #gp-site .gp-btn-primary:hover {
+    box-shadow: 0 6px 18px rgba(84,176,254,0.45);
+  }
+  #gp-site .gp-btn-outline {
+    background: transparent;
+    color: var(--preto);
+    border: 1.5px solid var(--preto);
+  }
+  #gp-site .gp-btn-youtube {
+    background: #FF0000;
+    color: white;
+  }
+  #gp-site .gp-btn-youtube:hover {
+    box-shadow: 0 6px 18px rgba(255,0,0,0.35);
+  }
+
+  /* ---------- SEÇÃO: SOBRE ---------- */
+  #gp-sobre {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+  }
+  @media (max-width: 860px) {
+    #gp-sobre { grid-template-columns: 1fr; gap: 40px; }
+  }
+  #gp-sobre h2 {
+    font-size: 1.9rem;
+    margin-bottom: 18px;
+    color: var(--azul-escuro);
+  }
+  #gp-sobre p {
+    font-family: -apple-system, sans-serif;
+    color: var(--cinza);
+    font-size: 1.02rem;
+  }
+
+  /* ---------- SEÇÃO: MATERIAIS ---------- */
+  #gp-materiais {
+    background: var(--preto);
+    color: white;
+    text-align: center;
+  }
+  #gp-materiais h2 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 14px;
+  }
+  #gp-materiais > p {
+    font-family: -apple-system, sans-serif;
+    color: #B8BEC7;
+    max-width: 46ch;
+    margin: 0 auto 40px;
+  }
+  #gp-materiais .gp-materiais-trigger {
+    background: var(--azul);
+    color: var(--preto);
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 20px 44px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Modal / caixa de materiais */
+  #gp-materiais-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,23,26,0.72);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #gp-materiais-modal.gp-open { display: flex; }
+  #gp-materiais-box {
+    background: white;
+    color: var(--preto);
+    width: 100%;
+    max-width: 480px;
+    max-height: 82vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: 32px;
+    position: relative;
+    font-family: -apple-system, sans-serif;
+  }
+  #gp-materiais-box h3 {
+    font-family: Georgia, serif;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  #gp-materiais-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: var(--cinza-claro);
+    border: none;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+  .gp-materia-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    text-align: left;
+    background: var(--cinza-claro);
+    border: none;
+    padding: 18px 20px;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+  .gp-materia-btn:hover { background: #E9EFF8; }
+  .gp-sub-list { display: none; margin-bottom: 16px; }
+  .gp-sub-list.gp-open { display: block; }
+  .gp-sub-header {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--cinza);
+    margin: 14px 4px 8px;
+  }
+  .gp-file-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid var(--borda);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--preto);
+    margin-bottom: 8px;
+    font-size: 0.98rem;
+  }
+  .gp-file-link:hover { border-color: var(--azul); background: #F7FBFF; }
+  .gp-back-btn {
+    background: none;
+    border: none;
+    font-family: -apple-system, sans-serif;
+    color: var(--azul-escuro);
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 14px;
+    padding: 0;
+  }
+
+  /* ---------- SEÇÃO: VIDEOAULAS ---------- */
+  #gp-videos {
+    text-align: center;
+    background: var(--cinza-claro);
+  }
+  #gp-videos h2 {
+    font-size: 1.9rem;
+    margin-bottom: 14px;
+    color: var(--azul-escuro);
+  }
+  #gp-videos p {
+    font-family: -apple-system, sans-serif;
+    color: var(--cinza);
+    max-width: 44ch;
+    margin: 0 auto 32px;
+  }
+
+  /* ---------- SEÇÃO: DEPOIMENTOS ---------- */
+  #gp-depoimentos h2 {
+    font-size: 1.9rem;
+    margin-bottom: 32px;
+    color: var(--azul-escuro);
+    text-align: center;
+  }
+
+  /* ---------- SEÇÃO: INSTAGRAM / EM BREVE ---------- */
+  #gp-final {
+    background: var(--azul);
+    text-align: center;
+  }
+  #gp-final h2 {
+    font-size: 2rem;
+    margin-bottom: 16px;
+  }
+  #gp-final p {
+    font-family: -apple-system, sans-serif;
+    margin-bottom: 28px;
+  }
+
+  /* ---------- FOOTER ---------- */
+  #gp-footer {
+    padding: 40px 8vw;
+    text-align: center;
+    font-family: -apple-system, sans-serif;
+    font-size: 0.9rem;
+    color: var(--cinza);
+  }
+  #gp-footer img { height: 40px; margin-bottom: 12px; }
+
+</style>
+
+  <!-- ================= HERO ================= -->
+  <section id="gp-hero">
+    <div>
+      <div class="gp-eyebrow gp-sans">Física e Matemática</div>
+      <h1>Prof. Gabriel Piovesana</h1>
+      <p class="gp-lede">
+        Aulas de física e matemática para o ensino médio e superior —
+        material gratuito, videoaulas e acompanhamento individual.
+      </p>
+      <div class="gp-hero-actions">
+        <a href="#gp-materiais" class="gp-btn gp-btn-primary">📚 Materiais gratuitos</a>
+        <a href="https://www.youtube.com/@Prof.GabrielPiovesana" target="_blank" class="gp-btn gp-btn-youtube">▶ YouTube</a>
+      </div>
+    </div>
+    <div class="gp-photo-wrap">
+      <img src="https://drive.google.com/uc?export=view&id=13FMAK0bdOlR25gcKA8WPDoY5KPgon584" alt="Prof. Gabriel Piovesana">
+    </div>
+  </section>
+
+  <!-- ================= SOBRE MIM / SOBRE AS AULAS ================= -->
+  <section id="gp-sobre">
+    <div>
+      <h2>Sobre mim</h2>
+      <p><strong>Mais do que ensinar.</strong><br>
+      Mais do que ensinar fórmulas e cálculos, meu objetivo é ajudar você a entender a lógica por trás da matemática e da física. Com um ensino personalizado e direcionado, já ajudei alunos a melhorarem suas notas, passarem em provas e se sentirem mais confiantes no aprendizado.</p>
+      <p style="margin-top:18px;"><strong>Formação</strong><br>
+      2022 — Lic. em Física (em andamento), IFMG–Campus Congonhas<br>
+      2018 — Téc. em Mecânica, IFMG–Campus Congonhas</p>
+      <p style="margin-top:18px;"><strong>Minha metodologia</strong><br>
+      Ensino matemática e física de forma clara e aplicada, focando na compreensão real dos conceitos. Uso exemplos práticos, desafios interativos e adapto as aulas ao ritmo de cada aluno.</p>
+    </div>
+    <div>
+      <h2>Sobre as aulas</h2>
+      <p>Aqui você vai encontrar todas as informações que precisa sobre minhas aulas particulares, incluindo como agendar, e uma descrição breve sobre como são as aulas.</p>
+    </div>
+  </section>
+
+  <!-- ================= MATERIAIS GRATUITOS ================= -->
+  <section id="gp-materiais">
+    <h2>Materiais gratuitos</h2>
+    <p>Listas de exercícios, resumos e apostilas de física e matemática, prontos para baixar.</p>
+    <button class="gp-materiais-trigger gp-sans" onclick="document.getElementById('gp-materiais-modal').classList.add('gp-open')">
+      Ver materiais
+    </button>
+  </section>
+
+  <!-- Modal de materiais -->
+  <div id="gp-materiais-modal">
+    <div id="gp-materiais-box">
+      <button id="gp-materiais-close" onclick="gpCloseMateriais()">✕</button>
+
+      <!-- Nível 1: escolha da matéria -->
+      <div id="gp-nivel-materia">
+        <h3>O que você procura?</h3>
+        <button class="gp-materia-btn" onclick="gpShowMateria('fisica')">
+          Física <span>→</span>
+        </button>
+        <button class="gp-materia-btn" onclick="gpShowMateria('matematica')">
+          Matemática <span>→</span>
+        </button>
+      </div>
+
+      <!-- Nível 2: Física -->
+      <div class="gp-sub-list" id="gp-sub-fisica">
+        <button class="gp-back-btn" onclick="gpBackToMateria()">← Voltar</button>
+        <div class="gp-sub-header">Física</div>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1XONznai4GY03SntSe0yPdl09Z-aN-QqA/view?usp=drive_link" target="_blank">MRU <span>⬇</span></a>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1NT6sOXuvD2s9scmsSGV1MKtcLZ8Tq0ko/view?usp=drive_link" target="_blank">Introdução à cinemática <span>⬇</span></a>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1gZx9DonLUqBq1IcT3snRblybrHZ_Sfzs/view?usp=drive_link" target="_blank">Circuitos <span>⬇</span></a>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1yYMfgf93gSlZa__a7kPnBk4kO8A1s1rk/view?usp=drive_link" target="_blank">Exercício: Energia e potência elétrica <span>⬇</span></a>
+      </div>
+
+      <!-- Nível 2: Matemática (com subcategorias) -->
+      <div class="gp-sub-list" id="gp-sub-matematica">
+        <button class="gp-back-btn" onclick="gpBackToMateria()">← Voltar</button>
+
+        <div class="gp-sub-header">Ensino médio</div>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/17FMaxeINYZr-XVF2Ru__XlvbFmApFAop/view?usp=drive_link" target="_blank">Porcentagem <span>⬇</span></a>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1C6nJL1NN2e-YwKUE9qjmQ8Dhc5zxEgeV/view?usp=drive_link" target="_blank">Expressões <span>⬇</span></a>
+
+        <div class="gp-sub-header">Ensino superior</div>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1kj7T761z_bQGg8nxTWdwYMSEMCQaHkoF/view?usp=drive_link" target="_blank">Séries de potência <span>⬇</span></a>
+        <a class="gp-file-link" href="https://drive.google.com/file/d/1jyuLrk9GCIp8eydhpn7EtoxNbQIOHrkX/view?usp=drive_link" target="_blank">Derivadas parciais <span>⬇</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= VIDEOAULAS ================= -->
+  <section id="gp-videos">
+    <h2>Videoaulas</h2>
+    <p>Conteúdo em vídeo, direto no canal do YouTube — explicações completas, passo a passo.</p>
+    <a href="https://www.youtube.com/@Prof.GabrielPiovesana" target="_blank" class="gp-btn gp-btn-youtube">▶ Ir para o canal</a>
+  </section>
+
+  <!-- ================= DEPOIMENTOS ================= -->
+  <section id="gp-depoimentos" style="text-align:center;">
+    <h2>Depoimentos</h2>
+    <p class="gp-sans" style="color:var(--cinza); max-width:44ch; margin:0 auto 32px;">
+      Veja o que meus alunos dizem sobre as aulas.
+    </p>
+    <a href="https://testimonial.to/gabriel-piovesana/all" target="_blank" class="gp-btn gp-btn-primary">
+      💬 Ver depoimentos
+    </a>
+  </section>
+
+  <!-- ================= INSTAGRAM / EM BREVE ================= -->
+  <section id="gp-final">
+    <h2>Me acompanhe no Instagram</h2>
+    <p class="gp-sans">Conteúdo novo toda semana — física, matemática e bastidores das aulas.</p>
+    <a href="https://instagram.com/prof.gabrielpiovesana" target="_blank" class="gp-btn gp-btn-outline" style="border-color:var(--preto);">
+      @prof.gabrielpiovesana
+    </a>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer id="gp-footer">
+    <img src="https://drive.google.com/uc?export=view&id=1IKG3_EputEjKWhDHtqPUrV0ntmjgkIhs" alt="Logo GP">
+    <div>Prof. Gabriel Piovesana — Física e Matemática</div>
+  </footer>
+
+</div>
+
+<script>
+  function gpShowMateria(materia) {
+    document.getElementById('gp-nivel-materia').style.display = 'none';
+    document.getElementById('gp-sub-' + materia).classList.add('gp-open');
+  }
+  function gpBackToMateria() {
+    document.getElementById('gp-sub-fisica').classList.remove('gp-open');
+    document.getElementById('gp-sub-matematica').classList.remove('gp-open');
+    document.getElementById('gp-nivel-materia').style.display = 'block';
+  }
+  function gpCloseMateriais() {
+    document.getElementById('gp-materiais-modal').classList.remove('gp-open');
+    gpBackToMateria();
+  }
+</script>
+</body>
+</html>
