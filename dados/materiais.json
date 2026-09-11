@@ -1,0 +1,1298 @@
+{
+  "areas": [
+    {
+      "id": "fisica",
+      "nome": "Física",
+      "niveis": [
+        {
+          "id": "fisica-1-ano",
+          "nome": "1º ano",
+          "descricao": "Mecânica: do movimento à gravitação",
+          "unidades": [
+            {
+              "id": "introducao",
+              "nome": "Introdução",
+              "materiais": [
+                {
+                  "titulo": "Análise dimensional",
+                  "arquivo": "fisica/1-ano/introducao/analise_dimensional.pdf",
+                  "tags": [
+                    "dimensional",
+                    "unidades"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "cinematica",
+              "nome": "Cinemática",
+              "materiais": [
+                {
+                  "titulo": "Vetores",
+                  "arquivo": "fisica/1-ano/cinematica/vetores.pdf",
+                  "tags": [
+                    "soma vetorial",
+                    "decomposicao"
+                  ]
+                },
+                {
+                  "titulo": "Movimento retilíneo uniforme (MRU)",
+                  "arquivo": "fisica/1-ano/cinematica/mru.pdf",
+                  "tags": [
+                    "mru",
+                    "velocidade media"
+                  ]
+                },
+                {
+                  "titulo": "MRUV",
+                  "arquivo": "fisica/1-ano/cinematica/mruv.pdf",
+                  "tags": [
+                    "mruv",
+                    "aceleracao",
+                    "queda livre",
+                    "muv"
+                  ]
+                },
+                {
+                  "titulo": "Análise gráfica na cinemática",
+                  "arquivo": "fisica/1-ano/cinematica/analise_grafica.pdf",
+                  "tags": [
+                    "graficos posicao tempo",
+                    "grafico velocidade"
+                  ]
+                },
+                {
+                  "titulo": "Cinemática vetorial",
+                  "arquivo": "fisica/1-ano/cinematica/cinematica_vetorial.pdf",
+                  "tags": [
+                    "movimento 2d"
+                  ]
+                },
+                {
+                  "titulo": "Lançamentos",
+                  "arquivo": "fisica/1-ano/cinematica/lancamentos.pdf",
+                  "tags": [
+                    "lancamento horizontal",
+                    "lancamento obliquo",
+                    "projetil"
+                  ]
+                },
+                {
+                  "titulo": "Movimento circular",
+                  "arquivo": "fisica/1-ano/cinematica/movimento_circular.pdf",
+                  "tags": [
+                    "mcu",
+                    "velocidade angular"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "dinamica",
+              "nome": "Dinâmica",
+              "materiais": [
+                {
+                  "titulo": "Leis de Newton",
+                  "arquivo": "fisica/1-ano/dinamica/leis_de_newton.pdf",
+                  "tags": [
+                    "inercia",
+                    "forca",
+                    "acao e reacao"
+                  ]
+                },
+                {
+                  "titulo": "Atrito",
+                  "arquivo": "fisica/1-ano/dinamica/atrito.pdf",
+                  "tags": [
+                    "forca de atrito",
+                    "atrito estatico",
+                    "atrito cinetico"
+                  ]
+                },
+                {
+                  "titulo": "Resistência do ar",
+                  "arquivo": "fisica/1-ano/dinamica/resistencia_ar.pdf",
+                  "tags": [
+                    "arrasto",
+                    "velocidade terminal"
+                  ]
+                },
+                {
+                  "titulo": "Dinâmica do movimento circular",
+                  "arquivo": "fisica/1-ano/dinamica/dinamica_circular.pdf",
+                  "tags": [
+                    "forca centripeta"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "estatica",
+              "nome": "Estática",
+              "materiais": [
+                {
+                  "titulo": "Equilíbrio dos corpos",
+                  "arquivo": "fisica/1-ano/estatica/equilibrio_corpos.pdf",
+                  "tags": [
+                    "equilibrio estatico"
+                  ]
+                },
+                {
+                  "titulo": "Equilíbrio do corpo extenso",
+                  "arquivo": "fisica/1-ano/estatica/equilibrio_corpo_extenso.pdf",
+                  "tags": [
+                    "torque",
+                    "momento de uma forca",
+                    "centro de massa"
+                  ]
+                },
+                {
+                  "titulo": "Máquinas simples",
+                  "arquivo": "fisica/1-ano/estatica/maquinas_simples.pdf",
+                  "tags": [
+                    "alavancas",
+                    "polias"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "energia",
+              "nome": "Trabalho e energia",
+              "materiais": [
+                {
+                  "titulo": "Trabalho e energia",
+                  "arquivo": "fisica/1-ano/energia/trabalho_e_energia.pdf",
+                  "tags": [
+                    "energia cinetica",
+                    "energia potencial",
+                    "potencia"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "colisoes",
+              "nome": "Impulso e colisões",
+              "materiais": [
+                {
+                  "titulo": "Impulso e quantidade de movimento",
+                  "arquivo": "fisica/1-ano/colisoes/impulso_quantidade.pdf",
+                  "tags": [
+                    "momento linear"
+                  ]
+                },
+                {
+                  "titulo": "Colisões",
+                  "arquivo": "fisica/1-ano/colisoes/colisoes.pdf",
+                  "tags": [
+                    "choque elastico",
+                    "choque inelastico"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "gravitacao",
+              "nome": "Gravitação",
+              "materiais": [
+                {
+                  "titulo": "Leis de Kepler",
+                  "arquivo": "fisica/1-ano/gravitacao/leis_de_kepler.pdf",
+                  "tags": [
+                    "orbitas"
+                  ]
+                },
+                {
+                  "titulo": "Gravitação",
+                  "arquivo": "fisica/1-ano/gravitacao/gravitacao.pdf",
+                  "tags": [
+                    "gravitacao universal",
+                    "lei da gravitacao"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fisica-2-ano",
+          "nome": "2º ano",
+          "descricao": "Termologia, fluidos, ondas e óptica",
+          "unidades": [
+            {
+              "id": "fluidos",
+              "nome": "Fluidos",
+              "materiais": [
+                {
+                  "titulo": "Hidrostática",
+                  "arquivo": "fisica/2-ano/fluidos/hidrostatica.pdf",
+                  "tags": [
+                    "pressao",
+                    "empuxo",
+                    "principio de arquimedes"
+                  ]
+                },
+                {
+                  "titulo": "Dinâmica dos fluidos",
+                  "arquivo": "fisica/2-ano/fluidos/dinamica_fluidos.pdf",
+                  "tags": [
+                    "vazao",
+                    "equacao de bernoulli"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "termologia",
+              "nome": "Termologia",
+              "materiais": [
+                {
+                  "titulo": "Termometria e escalas",
+                  "arquivo": "fisica/2-ano/termologia/termometria.pdf",
+                  "tags": [
+                    "escalas termometricas",
+                    "celsius",
+                    "kelvin"
+                  ]
+                },
+                {
+                  "titulo": "Dilatação térmica",
+                  "arquivo": "fisica/2-ano/termologia/dilatacao_termica.pdf",
+                  "tags": [
+                    "dilatacao linear",
+                    "dilatacao volumetrica"
+                  ]
+                },
+                {
+                  "titulo": "Propagação do calor",
+                  "arquivo": "fisica/2-ano/termologia/propagacao_calor.pdf",
+                  "tags": [
+                    "conducao",
+                    "conveccao",
+                    "irradiacao"
+                  ]
+                },
+                {
+                  "titulo": "Calorimetria",
+                  "arquivo": "fisica/2-ano/termologia/calorimetria.pdf",
+                  "tags": [
+                    "calor sensivel",
+                    "calor latente"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "termodinamica",
+              "nome": "Termodinâmica",
+              "materiais": [
+                {
+                  "titulo": "Estudo dos gases",
+                  "arquivo": "fisica/2-ano/termodinamica/estudo_gases.pdf",
+                  "tags": [
+                    "gases ideais",
+                    "transformacoes gasosas"
+                  ]
+                },
+                {
+                  "titulo": "Leis da termodinâmica",
+                  "arquivo": "fisica/2-ano/termodinamica/leis_termodinamica.pdf",
+                  "tags": [
+                    "primeira lei",
+                    "segunda lei"
+                  ]
+                },
+                {
+                  "titulo": "Termodinâmica",
+                  "arquivo": "fisica/2-ano/termodinamica/termodinamica.pdf",
+                  "tags": [
+                    "ciclos termodinamicos",
+                    "maquinas termicas"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "ondas",
+              "nome": "Oscilações e ondas",
+              "materiais": [
+                {
+                  "titulo": "Movimento harmônico simples",
+                  "arquivo": "fisica/2-ano/ondas/mhs.pdf",
+                  "tags": [
+                    "mhs",
+                    "oscilador"
+                  ]
+                },
+                {
+                  "titulo": "Ondulatória",
+                  "arquivo": "fisica/2-ano/ondas/ondulatoria.pdf",
+                  "tags": [
+                    "ondas mecanicas"
+                  ]
+                },
+                {
+                  "titulo": "Fenômenos ondulatórios",
+                  "arquivo": "fisica/2-ano/ondas/fenomenos_ondulatorios.pdf",
+                  "tags": [
+                    "reflexao de ondas",
+                    "refracao de ondas"
+                  ]
+                },
+                {
+                  "titulo": "Ondas estacionárias",
+                  "arquivo": "fisica/2-ano/ondas/ondas_estacionarias.pdf",
+                  "tags": [
+                    "ressonancia"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "acustica",
+              "nome": "Acústica",
+              "materiais": [
+                {
+                  "titulo": "Acústica",
+                  "arquivo": "fisica/2-ano/acustica/acustica.pdf",
+                  "tags": [
+                    "som",
+                    "timbre",
+                    "altura"
+                  ]
+                },
+                {
+                  "titulo": "Efeito Doppler",
+                  "arquivo": "fisica/2-ano/acustica/efeito_doppler.pdf",
+                  "tags": [
+                    "doppler"
+                  ]
+                },
+                {
+                  "titulo": "Tubos sonoros",
+                  "arquivo": "fisica/2-ano/acustica/tubos_sonoros.pdf",
+                  "tags": [
+                    "tubo aberto",
+                    "tubo fechado"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "optica",
+              "nome": "Óptica",
+              "materiais": [
+                {
+                  "titulo": "Óptica geométrica",
+                  "arquivo": "fisica/2-ano/optica/optica_geometrica.pdf",
+                  "tags": [
+                    "luz",
+                    "raios de luz"
+                  ]
+                },
+                {
+                  "titulo": "Espelhos planos",
+                  "arquivo": "fisica/2-ano/optica/espelhos_planos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Reflexão e refração",
+                  "arquivo": "fisica/2-ano/optica/reflexao_refracao.pdf",
+                  "tags": [
+                    "lei de snell"
+                  ]
+                },
+                {
+                  "titulo": "Espelhos esféricos",
+                  "arquivo": "fisica/2-ano/optica/espelhos_esfericos.pdf",
+                  "tags": [
+                    "espelho concavo",
+                    "espelho convexo"
+                  ]
+                },
+                {
+                  "titulo": "Lentes esféricas",
+                  "arquivo": "fisica/2-ano/optica/lentes_esfericas.pdf",
+                  "tags": [
+                    "lente convergente",
+                    "lente divergente"
+                  ]
+                },
+                {
+                  "titulo": "Interferência e difração",
+                  "arquivo": "fisica/2-ano/optica/interferencia_difracao.pdf",
+                  "tags": [
+                    "young"
+                  ]
+                },
+                {
+                  "titulo": "Polarização da luz",
+                  "arquivo": "fisica/2-ano/optica/polarizacao_luz.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Instrumentos ópticos e visão",
+                  "arquivo": "fisica/2-ano/optica/instrumentos_opticos_visao.pdf",
+                  "tags": [
+                    "olho humano",
+                    "miopia",
+                    "hipermetropia"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fisica-3-ano",
+          "nome": "3º ano",
+          "descricao": "Eletricidade, magnetismo e física moderna",
+          "unidades": [
+            {
+              "id": "eletrostatica",
+              "nome": "Eletrostática",
+              "materiais": [
+                {
+                  "titulo": "Eletrostática",
+                  "arquivo": "fisica/3-ano/eletrostatica/eletrostatica.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Processos de eletrização e força elétrica",
+                  "arquivo": "fisica/3-ano/eletrostatica/eletrizacao_coulomb.pdf",
+                  "tags": [
+                    "lei de coulomb",
+                    "inducao eletrostatica"
+                  ]
+                },
+                {
+                  "titulo": "Campo elétrico",
+                  "arquivo": "fisica/3-ano/eletrostatica/campo_eletrico.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Potencial elétrico",
+                  "arquivo": "fisica/3-ano/eletrostatica/potencial_eletrico.pdf",
+                  "tags": [
+                    "ddp"
+                  ]
+                },
+                {
+                  "titulo": "Condutores em equilíbrio eletrostático",
+                  "arquivo": "fisica/3-ano/eletrostatica/condutores_equilibrio.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Capacitores",
+                  "arquivo": "fisica/3-ano/eletrostatica/capacitores.pdf",
+                  "tags": [
+                    "capacitancia"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "eletrodinamica",
+              "nome": "Eletrodinâmica",
+              "materiais": [
+                {
+                  "titulo": "Corrente elétrica e leis de Ohm",
+                  "arquivo": "fisica/3-ano/eletrodinamica/corrente_leis_ohm.pdf",
+                  "tags": [
+                    "primeira lei de ohm",
+                    "segunda lei de ohm"
+                  ]
+                },
+                {
+                  "titulo": "Associação de resistores",
+                  "arquivo": "fisica/3-ano/eletrodinamica/associacao_resistores.pdf",
+                  "tags": [
+                    "serie",
+                    "paralelo"
+                  ]
+                },
+                {
+                  "titulo": "Circuitos",
+                  "arquivo": "fisica/3-ano/eletrodinamica/circuitos.pdf",
+                  "tags": [
+                    "leis de kirchhoff"
+                  ]
+                },
+                {
+                  "titulo": "Geradores e receptores",
+                  "arquivo": "fisica/3-ano/eletrodinamica/geradores_receptores.pdf",
+                  "tags": [
+                    "forca eletromotriz"
+                  ]
+                },
+                {
+                  "titulo": "Instrumentos de medida elétrica",
+                  "arquivo": "fisica/3-ano/eletrodinamica/instrumentos_medida.pdf",
+                  "tags": [
+                    "amperimetro",
+                    "voltimetro"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "eletromagnetismo",
+              "nome": "Eletromagnetismo",
+              "materiais": [
+                {
+                  "titulo": "Magnetismo",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/magnetismo.pdf",
+                  "tags": [
+                    "imas",
+                    "polos magneticos"
+                  ]
+                },
+                {
+                  "titulo": "Fontes de campo magnético",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/fontes_campo_magnetico.pdf",
+                  "tags": [
+                    "lei de ampere"
+                  ]
+                },
+                {
+                  "titulo": "Força magnética",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/forca_magnetica.pdf",
+                  "tags": [
+                    "forca de lorentz"
+                  ]
+                },
+                {
+                  "titulo": "Movimento de cargas em campos elétricos e magnéticos",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/cargas_em_campos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Indução eletromagnética",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/inducao_eletromagnetica.pdf",
+                  "tags": [
+                    "lei de faraday",
+                    "lei de lenz"
+                  ]
+                },
+                {
+                  "titulo": "Corrente alternada e transformadores",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/corrente_alternada_transformadores.pdf",
+                  "tags": [
+                    "ca"
+                  ]
+                },
+                {
+                  "titulo": "Ondas eletromagnéticas",
+                  "arquivo": "fisica/3-ano/eletromagnetismo/ondas_eletromagneticas.pdf",
+                  "tags": [
+                    "espectro eletromagnetico"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "moderna",
+              "nome": "Física moderna",
+              "materiais": [
+                {
+                  "titulo": "Efeito fotoelétrico",
+                  "arquivo": "fisica/3-ano/moderna/efeito_fotoeletrico.pdf",
+                  "tags": [
+                    "foton"
+                  ]
+                },
+                {
+                  "titulo": "Introdução à física quântica",
+                  "arquivo": "fisica/3-ano/moderna/fisica_quantica.pdf",
+                  "tags": [
+                    "quantica"
+                  ]
+                },
+                {
+                  "titulo": "Relatividade restrita",
+                  "arquivo": "fisica/3-ano/moderna/relatividade_restrita.pdf",
+                  "tags": [
+                    "einstein",
+                    "dilatacao do tempo"
+                  ]
+                },
+                {
+                  "titulo": "Física nuclear",
+                  "arquivo": "fisica/3-ano/moderna/fisica_nuclear.pdf",
+                  "tags": [
+                    "radioatividade",
+                    "fissao",
+                    "fusao"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "matematica",
+      "nome": "Matemática",
+      "niveis": [
+        {
+          "id": "matematica-base",
+          "nome": "Base (revisão)",
+          "descricao": "Fundamentos usados em todas as séries",
+          "unidades": [
+            {
+              "id": "aritmetica",
+              "nome": "Aritmética",
+              "materiais": [
+                {
+                  "titulo": "Números inteiros",
+                  "arquivo": "matematica/base/aritmetica/numeros_inteiros.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Números decimais",
+                  "arquivo": "matematica/base/aritmetica/numeros_decimais.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Frações",
+                  "arquivo": "matematica/base/aritmetica/fracoes.pdf",
+                  "tags": [
+                    "fracoes"
+                  ]
+                },
+                {
+                  "titulo": "Potenciação",
+                  "arquivo": "matematica/base/aritmetica/potenciacao.pdf",
+                  "tags": [
+                    "potenciacao"
+                  ]
+                },
+                {
+                  "titulo": "Radiciação",
+                  "arquivo": "matematica/base/aritmetica/radiciacao.pdf",
+                  "tags": [
+                    "raiz"
+                  ]
+                },
+                {
+                  "titulo": "Notação científica",
+                  "arquivo": "matematica/base/aritmetica/notacao_cientifica.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Expressões",
+                  "arquivo": "matematica/base/aritmetica/expressoes.pdf",
+                  "tags": [
+                    "expressoes numericas"
+                  ]
+                },
+                {
+                  "titulo": "Divisibilidade, números primos, MMC e MDC",
+                  "arquivo": "matematica/base/aritmetica/divisibilidade_mmc_mdc.pdf",
+                  "tags": [
+                    "mmc",
+                    "mdc"
+                  ]
+                },
+                {
+                  "titulo": "Critérios de divisibilidade e primos",
+                  "arquivo": "matematica/base/aritmetica/divisibilidade_primos.pdf",
+                  "tags": [
+                    "numeros primos"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "proporcionalidade",
+              "nome": "Proporcionalidade",
+              "materiais": [
+                {
+                  "titulo": "Razão e proporção",
+                  "arquivo": "matematica/base/proporcionalidade/razao_proporcao.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Porcentagem",
+                  "arquivo": "matematica/base/proporcionalidade/porcentagem.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Regra de três",
+                  "arquivo": "matematica/base/proporcionalidade/regra_de_tres.pdf",
+                  "tags": [
+                    "regra de tres simples",
+                    "regra de tres composta"
+                  ]
+                },
+                {
+                  "titulo": "Unidades de medida e conversões",
+                  "arquivo": "matematica/base/proporcionalidade/unidades_conversoes.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "algebra",
+              "nome": "Álgebra elementar",
+              "materiais": [
+                {
+                  "titulo": "Produtos notáveis e fatoração",
+                  "arquivo": "matematica/base/algebra/produtos_e_fatoracao.pdf",
+                  "tags": [
+                    "produtos notaveis"
+                  ]
+                },
+                {
+                  "titulo": "Fatoração algébrica",
+                  "arquivo": "matematica/base/algebra/fatoracao_algebrica.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "financeira",
+              "nome": "Matemática financeira",
+              "materiais": [
+                {
+                  "titulo": "Matemática financeira",
+                  "arquivo": "matematica/base/financeira/matematica_financeira.pdf",
+                  "tags": [
+                    "juros simples",
+                    "juros compostos"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "matematica-1-ano",
+          "nome": "1º ano",
+          "descricao": "Conjuntos, equações, funções e trigonometria",
+          "unidades": [
+            {
+              "id": "conjuntos",
+              "nome": "Conjuntos",
+              "materiais": [
+                {
+                  "titulo": "Conjuntos",
+                  "arquivo": "matematica/1-ano/conjuntos/conjuntos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Conjuntos numéricos",
+                  "arquivo": "matematica/1-ano/conjuntos/conjuntos_numericos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Conjuntos e diagramas de Venn",
+                  "arquivo": "matematica/1-ano/conjuntos/conjuntos_venn.pdf",
+                  "tags": [
+                    "diagrama de venn"
+                  ]
+                },
+                {
+                  "titulo": "Intervalos reais",
+                  "arquivo": "matematica/1-ano/conjuntos/intervalos_reais.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "equacoes",
+              "nome": "Equações e inequações",
+              "materiais": [
+                {
+                  "titulo": "Equação do 1º grau",
+                  "arquivo": "matematica/1-ano/equacoes/equacao.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Equação do 2º grau",
+                  "arquivo": "matematica/1-ano/equacoes/equacao_2_grau.pdf",
+                  "tags": [
+                    "bhaskara"
+                  ]
+                },
+                {
+                  "titulo": "Equações biquadradas",
+                  "arquivo": "matematica/1-ano/equacoes/equacoes_biquadradas.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Equações fracionárias",
+                  "arquivo": "matematica/1-ano/equacoes/equacoes_fracionarias.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Equações irracionais",
+                  "arquivo": "matematica/1-ano/equacoes/equacoes_irracionais.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Inequações do 1º grau",
+                  "arquivo": "matematica/1-ano/equacoes/inequacoes_1_grau.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Inequações do 2º grau",
+                  "arquivo": "matematica/1-ano/equacoes/inequacoes_2_grau.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Inequações produto e quociente",
+                  "arquivo": "matematica/1-ano/equacoes/inequacoes_produto_quociente.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "funcoes",
+              "nome": "Funções",
+              "materiais": [
+                {
+                  "titulo": "Classificação de funções",
+                  "arquivo": "matematica/1-ano/funcoes/funcoes_classificacao.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Função afim",
+                  "arquivo": "matematica/1-ano/funcoes/funcao.pdf",
+                  "tags": [
+                    "funcao do 1 grau"
+                  ]
+                },
+                {
+                  "titulo": "Função quadrática",
+                  "arquivo": "matematica/1-ano/funcoes/funcao_quadratica.pdf",
+                  "tags": [
+                    "parabola"
+                  ]
+                },
+                {
+                  "titulo": "Função modular",
+                  "arquivo": "matematica/1-ano/funcoes/funcao_modular.pdf",
+                  "tags": [
+                    "modulo"
+                  ]
+                },
+                {
+                  "titulo": "Função composta e inversa",
+                  "arquivo": "matematica/1-ano/funcoes/funcao_composta_inversa.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Funções inversas",
+                  "arquivo": "matematica/1-ano/funcoes/funcoes_inversas.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Lista de exercícios — Função quadrática",
+                  "arquivo": "matematica/1-ano/funcoes/lista.pdf",
+                  "tags": [
+                    "exercicios funcao quadratica"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "exp-log",
+              "nome": "Exponenciais e logaritmos",
+              "materiais": [
+                {
+                  "titulo": "Função exponencial",
+                  "arquivo": "matematica/1-ano/exp-log/funcao_exponencial.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Logaritmos",
+                  "arquivo": "matematica/1-ano/exp-log/logaritmos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Propriedades dos logaritmos",
+                  "arquivo": "matematica/1-ano/exp-log/propriedades_logaritmos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Equações exponenciais e logarítmicas",
+                  "arquivo": "matematica/1-ano/exp-log/equacoes_exp_log.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "progressoes",
+              "nome": "Sequências e progressões",
+              "materiais": [
+                {
+                  "titulo": "Progressões",
+                  "arquivo": "matematica/1-ano/progressoes/progressoes.pdf",
+                  "tags": [
+                    "sequencias"
+                  ]
+                },
+                {
+                  "titulo": "Progressão aritmética (PA)",
+                  "arquivo": "matematica/1-ano/progressoes/progressao_aritmetica.pdf",
+                  "tags": [
+                    "pa"
+                  ]
+                },
+                {
+                  "titulo": "Progressão geométrica (PG)",
+                  "arquivo": "matematica/1-ano/progressoes/progressao_geometrica.pdf",
+                  "tags": [
+                    "pg"
+                  ]
+                },
+                {
+                  "titulo": "Progressão harmônica",
+                  "arquivo": "matematica/1-ano/progressoes/progressao_harmonica.pdf",
+                  "tags": [
+                    "ph"
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "trigonometria",
+              "nome": "Trigonometria",
+              "materiais": [
+                {
+                  "titulo": "Teorema de Pitágoras",
+                  "arquivo": "matematica/1-ano/trigonometria/pitagoras.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Trigonometria no triângulo retângulo",
+                  "arquivo": "matematica/1-ano/trigonometria/trigonometria.pdf",
+                  "tags": [
+                    "seno",
+                    "cosseno",
+                    "tangente"
+                  ]
+                },
+                {
+                  "titulo": "Lei dos senos e lei dos cossenos",
+                  "arquivo": "matematica/1-ano/trigonometria/leis_senos_cossenos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Circunferência trigonométrica",
+                  "arquivo": "matematica/1-ano/trigonometria/circunferencia_trigonometrica.pdf",
+                  "tags": [
+                    "ciclo trigonometrico"
+                  ]
+                },
+                {
+                  "titulo": "Arcos e relações trigonométricas",
+                  "arquivo": "matematica/1-ano/trigonometria/arcos_relacoes.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Funções trigonométricas",
+                  "arquivo": "matematica/1-ano/trigonometria/funcoes_trigonometricas.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Transformações trigonométricas",
+                  "arquivo": "matematica/1-ano/trigonometria/transformacoes_trigonometricas.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Equações trigonométricas",
+                  "arquivo": "matematica/1-ano/trigonometria/equacoes_trigonometricas.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Inequações trigonométricas",
+                  "arquivo": "matematica/1-ano/trigonometria/inequacoes_trigonometricas.pdf",
+                  "tags": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "matematica-2-ano",
+          "nome": "2º ano",
+          "descricao": "Matrizes, combinatória e geometria",
+          "unidades": [
+            {
+              "id": "matrizes",
+              "nome": "Matrizes e sistemas",
+              "materiais": [
+                {
+                  "titulo": "Matrizes",
+                  "arquivo": "matematica/2-ano/matrizes/matrizes.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Operações com matrizes e inversa",
+                  "arquivo": "matematica/2-ano/matrizes/matrizes_avancadas.pdf",
+                  "tags": [
+                    "matriz inversa"
+                  ]
+                },
+                {
+                  "titulo": "Determinantes",
+                  "arquivo": "matematica/2-ano/matrizes/determinantes.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Sistemas lineares",
+                  "arquivo": "matematica/2-ano/matrizes/sistemas_lineares.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "combinatoria",
+              "nome": "Combinatória e probabilidade",
+              "materiais": [
+                {
+                  "titulo": "Análise combinatória",
+                  "arquivo": "matematica/2-ano/combinatoria/analise_combinatoria.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Permutações, arranjos e combinações",
+                  "arquivo": "matematica/2-ano/combinatoria/combinatoria_metodos.pdf",
+                  "tags": [
+                    "permutacao",
+                    "arranjo",
+                    "combinacao"
+                  ]
+                },
+                {
+                  "titulo": "Binômio de Newton",
+                  "arquivo": "matematica/2-ano/combinatoria/binomio_newton.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Estatística e probabilidade",
+                  "arquivo": "matematica/2-ano/combinatoria/estatistica_probabilidade.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Probabilidade condicional",
+                  "arquivo": "matematica/2-ano/combinatoria/probabilidade_condicional.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "geometria-plana",
+              "nome": "Geometria plana",
+              "materiais": [
+                {
+                  "titulo": "Geometria plana",
+                  "arquivo": "matematica/2-ano/geometria-plana/geometria_plana.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Áreas de figuras planas",
+                  "arquivo": "matematica/2-ano/geometria-plana/areas_figuras_planas.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Polígonos",
+                  "arquivo": "matematica/2-ano/geometria-plana/poligonos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Triângulos",
+                  "arquivo": "matematica/2-ano/geometria-plana/triangulos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Quadriláteros",
+                  "arquivo": "matematica/2-ano/geometria-plana/quadrilateros.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Semelhança de triângulos",
+                  "arquivo": "matematica/2-ano/geometria-plana/semelhanca_triangulos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Teorema de Tales",
+                  "arquivo": "matematica/2-ano/geometria-plana/teorema_de_tales.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Lugares geométricos",
+                  "arquivo": "matematica/2-ano/geometria-plana/lugares_geometricos.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "geometria-espacial",
+              "nome": "Geometria espacial",
+              "materiais": [
+                {
+                  "titulo": "Geometria de posição",
+                  "arquivo": "matematica/2-ano/geometria-espacial/geometria_posicao.pdf",
+                  "tags": [
+                    "pontos retas planos"
+                  ]
+                },
+                {
+                  "titulo": "Geometria espacial",
+                  "arquivo": "matematica/2-ano/geometria-espacial/geometria_espacial.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Poliedros",
+                  "arquivo": "matematica/2-ano/geometria-espacial/poliedros.pdf",
+                  "tags": [
+                    "relacao de euler"
+                  ]
+                },
+                {
+                  "titulo": "Prismas e cilindros",
+                  "arquivo": "matematica/2-ano/geometria-espacial/prismas_cilindros.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Pirâmides e cones",
+                  "arquivo": "matematica/2-ano/geometria-espacial/piramides_cones.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Esfera e sólidos de revolução",
+                  "arquivo": "matematica/2-ano/geometria-espacial/esfera_solidos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Inscrição e circunscrição de sólidos",
+                  "arquivo": "matematica/2-ano/geometria-espacial/inscricao_solidos.pdf",
+                  "tags": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "matematica-3-ano",
+          "nome": "3º ano",
+          "descricao": "Polinômios, complexos e geometria analítica",
+          "unidades": [
+            {
+              "id": "polinomios",
+              "nome": "Polinômios",
+              "materiais": [
+                {
+                  "titulo": "Polinômios",
+                  "arquivo": "matematica/3-ano/polinomios/polinomios.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "complexos",
+              "nome": "Números complexos",
+              "materiais": [
+                {
+                  "titulo": "Números complexos",
+                  "arquivo": "matematica/3-ano/complexos/numeros_complexos.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Lugares geométricos no plano complexo",
+                  "arquivo": "matematica/3-ano/complexos/complexos_lugares.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "geometria-analitica",
+              "nome": "Geometria analítica",
+              "materiais": [
+                {
+                  "titulo": "Geometria analítica",
+                  "arquivo": "matematica/3-ano/geometria-analitica/geometria_analitica.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Geometria analítica da reta",
+                  "arquivo": "matematica/3-ano/geometria-analitica/geometria_analitica_reta.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Geometria analítica da circunferência",
+                  "arquivo": "matematica/3-ano/geometria-analitica/geometria_analitica_circunferencia.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Cônicas",
+                  "arquivo": "matematica/3-ano/geometria-analitica/conicas.pdf",
+                  "tags": [
+                    "elipse",
+                    "parabola",
+                    "hiperbole"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "matematica-extras",
+          "nome": "Extras e olimpíadas",
+          "descricao": "Complementos para quem quer ir além",
+          "unidades": [
+            {
+              "id": "teoria-numeros",
+              "nome": "Teoria dos números",
+              "materiais": [
+                {
+                  "titulo": "Aritmética modular",
+                  "arquivo": "matematica/extras/teoria-numeros/aritmetica_modular.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Bases de numeração",
+                  "arquivo": "matematica/extras/teoria-numeros/bases_numeracao.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "demonstracoes",
+              "nome": "Técnicas de demonstração",
+              "materiais": [
+                {
+                  "titulo": "Indução finita",
+                  "arquivo": "matematica/extras/demonstracoes/inducao_finita.pdf",
+                  "tags": []
+                },
+                {
+                  "titulo": "Desigualdade das médias",
+                  "arquivo": "matematica/extras/demonstracoes/desigualdade_medias.pdf",
+                  "tags": []
+                }
+              ]
+            },
+            {
+              "id": "logica",
+              "nome": "Lógica",
+              "materiais": [
+                {
+                  "titulo": "Raciocínio lógico",
+                  "arquivo": "matematica/extras/logica/raciocinio_logico.pdf",
+                  "tags": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

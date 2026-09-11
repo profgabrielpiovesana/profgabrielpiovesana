@@ -1,0 +1,8 @@
+# Documentação e ferramentas locais de manutenção
+ESTRUTURA.md
+scripts/validar.mjs
+
+# Arquivos temporários do sistema/editor
+.DS_Store
+Thumbs.db
+*~
