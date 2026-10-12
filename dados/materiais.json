@@ -885,16 +885,9 @@
                   "tags": []
                 },
                 {
-                  "titulo": "Funções inversas",
+                  "titulo": "Funções trigonométricas inversas — aprofundamento",
                   "arquivo": "matematica/1-ano/funcoes/funcoes_inversas.pdf",
-                  "tags": []
-                },
-                {
-                  "titulo": "Lista de exercícios — Função quadrática",
-                  "arquivo": "matematica/1-ano/funcoes/lista.pdf",
-                  "tags": [
-                    "exercicios funcao quadratica"
-                  ]
+                  "tags": ["aprofundamento", "trigonometria inversa"]
                 }
               ]
             },
@@ -950,10 +943,11 @@
                   ]
                 },
                 {
-                  "titulo": "Progressão harmônica",
+                  "titulo": "Progressão harmônica — aprofundamento",
                   "arquivo": "matematica/1-ano/progressoes/progressao_harmonica.pdf",
                   "tags": [
-                    "ph"
+                    "ph",
+                    "aprofundamento"
                   ]
                 }
               ]
