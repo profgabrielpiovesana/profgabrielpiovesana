@@ -15,8 +15,11 @@ const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const run = randomUUID();
 const pdf = Buffer.from('%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n');
 const path = `${randomUUID()}.pdf`;
+const scratchPath = `${randomUUID()}.pdf`;
+const rejectedPath = `${randomUUID()}.pdf`;
 const users = [];
 let materialId;
+let scratchMaterialId;
 
 async function request(route, key, token, method = 'GET', body, contentType = 'application/json') {
   const headers = { apikey: key, Authorization: `Bearer ${token ?? key}` };
@@ -44,6 +47,7 @@ async function table(name, token, query = '') {
 }
 async function download(token) { return request(`/storage/v1/object/authenticated/materiais-alunos/${path}`, anon, token); }
 function denied(response, label) { assert.ok([401, 403, 404].includes(response.status), `${label}: expected auth denial, got HTTP ${response.status}`); }
+function deniedOrNoop(response, label) { assert.ok([200, 204, 401, 403, 404].includes(response.status), `${label}: unexpected HTTP ${response.status}`); }
 
 // This test mutates only synthetic fixtures in an explicitly marked disposable project.
 test('real RLS and Storage revocation using the same JWT', async () => {
@@ -53,9 +57,60 @@ test('real RLS and Storage revocation using the same JWT', async () => {
     const b = await createUser('b');
     const outsider = await createUser('outsider');
     assert.equal((await admin('/rest/v1/professores', 'POST', [{ user_id: professor.id }])).status, 201);
+    const identity = await request('/auth/v1/user', anon, outsider.token);
+    assert.equal(identity.status, 200, 'unenrolled user has a valid Auth identity');
+    assert.equal(identity.json().id, outsider.id);
     for (const [student, name] of [[a, 'A'], [b, 'B']]) {
       assert.equal((await admin('/rest/v1/alunos', 'POST', [{ user_id: student.id, nome: name, email: `${name}-${run}@portal.test.invalid` }])).status, 201);
     }
+    assert.deepEqual((await table('alunos', b.token)).json().map(row => row.user_id), [b.id], 'B reads own enrollment');
+    assert.deepEqual((await table('alunos', outsider.token)).json(), [], 'unenrolled Auth user sees no enrollment');
+
+    // Direct CRUD uses the professor JWT, not the service key used to seed Auth.
+    assert.equal((await request('/rest/v1/alunos', anon, professor.token, 'POST',
+      { user_id: outsider.id, nome: 'Temporary', email: `temporary-${run}@portal.test.invalid` })).status, 201);
+    assert.equal((await table('alunos', professor.token, `&user_id=eq.${outsider.id}`)).json().length, 1);
+    assert.equal((await request(`/rest/v1/alunos?user_id=eq.${outsider.id}`, anon, professor.token, 'PATCH', { nome: 'Edited' })).status, 204);
+    assert.equal((await table('alunos', professor.token, `&user_id=eq.${outsider.id}`)).json()[0].nome, 'Edited');
+    assert.equal((await request('/rest/v1/materiais_privados', anon, professor.token, 'POST', {
+      titulo: 'Temporary PDF', tipo: 'lista', data_referencia: '2026-10-23', object_path: scratchPath, nome_original: 'temp.pdf', publicado: false,
+    })).status, 201);
+    const scratch = (await table('materiais_privados', professor.token, `&object_path=eq.${scratchPath}`)).json();
+    assert.equal(scratch.length, 1, 'professor directly creates material');
+    scratchMaterialId = scratch[0].id;
+    assert.equal((await request(`/rest/v1/materiais_privados?id=eq.${scratchMaterialId}`, anon, professor.token, 'PATCH', { descricao: 'Edited' })).status, 204);
+    assert.equal((await table('materiais_privados', professor.token, `&id=eq.${scratchMaterialId}`)).json()[0].descricao, 'Edited');
+    assert.equal((await request('/rest/v1/acessos_materiais', anon, professor.token, 'POST', { material_id: scratchMaterialId, aluno_id: b.id })).status, 201);
+    assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${scratchMaterialId}`)).json().length, 1);
+    assert.equal((await request(`/rest/v1/acessos_materiais?material_id=eq.${scratchMaterialId}&aluno_id=eq.${b.id}`, anon, professor.token, 'PATCH', { aluno_id: outsider.id })).status, 204);
+    assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${scratchMaterialId}`)).json()[0].aluno_id, outsider.id);
+    assert.equal((await request(`/rest/v1/acessos_materiais?material_id=eq.${scratchMaterialId}`, anon, professor.token, 'DELETE')).status, 204);
+    assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${scratchMaterialId}`)).json().length, 0);
+    assert.equal((await request(`/rest/v1/alunos?user_id=eq.${outsider.id}`, anon, professor.token, 'DELETE')).status, 204);
+    assert.equal((await table('alunos', professor.token, `&user_id=eq.${outsider.id}`)).json().length, 0);
+
+    // Every negative INSERT uses valid FKs and unique paths, so constraints cannot fake an RLS denial.
+    denied(await request('/rest/v1/alunos', anon, a.token, 'POST', {
+      user_id: outsider.id, nome: 'Intruder', email: `intruder-${run}@portal.test.invalid`,
+    }), 'student inserts enrollment');
+    denied(await request('/rest/v1/alunos', anon, null, 'POST', {
+      user_id: outsider.id, nome: 'Visitor', email: `visitor-${run}@portal.test.invalid`,
+    }), 'visitor inserts enrollment');
+    denied(await request('/rest/v1/materiais_privados', anon, a.token, 'POST', {
+      titulo: 'Intruder', tipo: 'aula', data_referencia: '2026-10-23', object_path: rejectedPath, nome_original: 'x.pdf',
+    }), 'student inserts material');
+    denied(await request('/rest/v1/materiais_privados', anon, null, 'POST', {
+      titulo: 'Visitor', tipo: 'aula', data_referencia: '2026-10-23', object_path: rejectedPath, nome_original: 'x.pdf',
+    }), 'visitor inserts material');
+    denied(await request('/rest/v1/acessos_materiais', anon, a.token, 'POST', { material_id: scratchMaterialId, aluno_id: b.id }), 'student inserts assignment');
+    denied(await request('/rest/v1/acessos_materiais', anon, null, 'POST', { material_id: scratchMaterialId, aluno_id: b.id }), 'visitor inserts assignment');
+    assert.equal((await table('alunos', professor.token, `&user_id=eq.${outsider.id}`)).json().length, 0);
+    assert.equal((await table('materiais_privados', professor.token, `&object_path=eq.${rejectedPath}`)).json().length, 0);
+    assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${scratchMaterialId}`)).json().length, 0);
+    assert.equal((await request(`/rest/v1/materiais_privados?id=eq.${scratchMaterialId}`, anon, professor.token, 'DELETE')).status, 204);
+    assert.equal((await table('materiais_privados', professor.token, `&id=eq.${scratchMaterialId}`)).json().length, 0);
+    scratchMaterialId = undefined;
+
     const upload = await request(`/storage/v1/object/materiais-alunos/${path}`, anon, professor.token, 'POST', pdf, 'application/pdf');
     assert.ok([200, 201].includes(upload.status), `teacher upload: ${upload.status}`);
     assert.deepEqual((await download(professor.token)).bytes, pdf, 'teacher downloads uploaded PDF');
@@ -66,6 +121,22 @@ test('real RLS and Storage revocation using the same JWT', async () => {
     assert.equal(saved.status, 200, `save material: ${saved.status}`);
     materialId = saved.json();
     assert.equal((await table('materiais_privados', a.token)).json().length, 1);
+    // RLS may answer UPDATE/DELETE with 204 and zero rows; read back as professor to prove no mutation.
+    for (const token of [a.token, null]) {
+      const label = token ? 'student' : 'visitor';
+      deniedOrNoop(await request(`/rest/v1/alunos?user_id=eq.${a.id}`, anon, token, 'PATCH', { ativo: false }), `${label} updates enrollment`);
+      deniedOrNoop(await request(`/rest/v1/materiais_privados?id=eq.${materialId}`, anon, token, 'PATCH', { publicado: false }), `${label} updates material`);
+      deniedOrNoop(await request(`/rest/v1/acessos_materiais?material_id=eq.${materialId}&aluno_id=eq.${a.id}`, anon, token, 'PATCH', { aluno_id: b.id }), `${label} updates assignment`);
+      assert.equal((await table('alunos', professor.token, `&user_id=eq.${a.id}`)).json()[0].ativo, true);
+      assert.equal((await table('materiais_privados', professor.token, `&id=eq.${materialId}`)).json()[0].publicado, true);
+      assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${materialId}`)).json()[0].aluno_id, a.id);
+      deniedOrNoop(await request(`/rest/v1/acessos_materiais?material_id=eq.${materialId}&aluno_id=eq.${a.id}`, anon, token, 'DELETE'), `${label} deletes assignment`);
+      deniedOrNoop(await request(`/rest/v1/materiais_privados?id=eq.${materialId}`, anon, token, 'DELETE'), `${label} deletes material`);
+      deniedOrNoop(await request(`/rest/v1/alunos?user_id=eq.${a.id}`, anon, token, 'DELETE'), `${label} deletes enrollment`);
+      assert.equal((await table('alunos', professor.token, `&user_id=eq.${a.id}`)).json().length, 1);
+      assert.equal((await table('materiais_privados', professor.token, `&id=eq.${materialId}`)).json().length, 1);
+      assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${materialId}`)).json().length, 1);
+    }
     const known = await download(a.token);
     assert.equal(known.status, 200);
     assert.deepEqual(known.bytes, pdf);
@@ -101,8 +172,10 @@ test('real RLS and Storage revocation using the same JWT', async () => {
         if (![200, 204, 404].includes(result.status)) cleanupErrors.push(`${label}: HTTP ${result.status}`);
       } catch (error) { cleanupErrors.push(`${label}: ${error.message}`); }
     }
+    if (scratchMaterialId) await cleanup('scratch assignments', () => admin(`/rest/v1/acessos_materiais?material_id=eq.${scratchMaterialId}`, 'DELETE'));
+    await cleanup('scratch material', () => admin(`/rest/v1/materiais_privados?object_path=eq.${scratchPath}`, 'DELETE'));
     if (materialId) await cleanup('assignments', () => admin(`/rest/v1/acessos_materiais?material_id=eq.${materialId}`, 'DELETE'));
-    if (materialId) await cleanup('material', () => admin(`/rest/v1/materiais_privados?id=eq.${materialId}`, 'DELETE'));
+    await cleanup('material', () => admin(`/rest/v1/materiais_privados?object_path=eq.${path}`, 'DELETE'));
     await cleanup('PDF', () => admin(`/storage/v1/object/materiais-alunos/${path}`, 'DELETE'));
     for (const id of users) {
       await cleanup('student', () => admin(`/rest/v1/alunos?user_id=eq.${id}`, 'DELETE'));

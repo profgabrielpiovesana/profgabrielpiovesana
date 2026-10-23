@@ -33,6 +33,31 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 select pg_temp.assert_true((select count(*)=2 from public.alunos where ativo), 'professor reads students');
 select pg_temp.assert_true((select count(*)=1 from public.materiais_privados), 'professor reads materials');
+
+-- Exercise direct professor CRUD through the same authenticated role as the browser.
+insert into public.alunos(user_id,nome,email) values
+ ('44444444-4444-4444-8444-444444444444','Temporary','temp@portal.test.invalid');
+select pg_temp.assert_true((select count(*)=1 from public.alunos where nome='Temporary'), 'professor directly inserts student');
+update public.alunos set nome='Edited' where user_id='44444444-4444-4444-8444-444444444444';
+select pg_temp.assert_true((select count(*)=1 from public.alunos where nome='Edited'), 'professor directly updates student');
+insert into public.materiais_privados(titulo,tipo,data_referencia,object_path,nome_original,publicado)
+values ('Temporary PDF','lista','2026-10-23','66666666-6666-4666-8666-666666666666.pdf','temp.pdf',false);
+select pg_temp.assert_true((select count(*)=1 from public.materiais_privados where titulo='Temporary PDF'), 'professor directly inserts material');
+update public.materiais_privados set descricao='Edited' where titulo='Temporary PDF';
+select pg_temp.assert_true((select count(*)=1 from public.materiais_privados where titulo='Temporary PDF' and descricao='Edited'), 'professor directly updates material');
+insert into public.acessos_materiais(material_id,aluno_id)
+select id, '44444444-4444-4444-8444-444444444444' from public.materiais_privados where titulo='Temporary PDF';
+select pg_temp.assert_true((select count(*)=1 from public.acessos_materiais where aluno_id='44444444-4444-4444-8444-444444444444'), 'professor directly inserts assignment');
+update public.acessos_materiais set aluno_id='33333333-3333-4333-8333-333333333333'
+where aluno_id='44444444-4444-4444-8444-444444444444';
+select pg_temp.assert_true((select count(*)=1 from public.acessos_materiais where aluno_id='33333333-3333-4333-8333-333333333333'), 'professor directly updates assignment');
+delete from public.acessos_materiais where aluno_id='33333333-3333-4333-8333-333333333333';
+select pg_temp.assert_true((select count(*)=0 from public.acessos_materiais where aluno_id='33333333-3333-4333-8333-333333333333'), 'professor directly deletes assignment');
+delete from public.materiais_privados where titulo='Temporary PDF';
+select pg_temp.assert_true((select count(*)=0 from public.materiais_privados where titulo='Temporary PDF'), 'professor directly deletes material');
+delete from public.alunos where user_id='44444444-4444-4444-8444-444444444444';
+select pg_temp.assert_true((select count(*)=2 from public.alunos), 'professor directly deletes student');
+
 select pg_temp.assert_denied('insert into public.professores(user_id) values (''44444444-4444-4444-8444-444444444444'')', 'browser cannot create professor');
 select pg_temp.assert_denied('update public.materiais_privados set object_path=''66666666-6666-4666-8666-666666666666.pdf'' where titulo=''PDF A''', 'file path is immutable');
 select public.save_material((select id from public.materiais_privados where titulo='PDF A'),
@@ -50,17 +75,47 @@ select pg_temp.assert_true((select ativo from public.alunos where user_id='22222
 select pg_temp.assert_denied('insert into public.professores(user_id) values (''22222222-2222-4222-8222-222222222222'')', 'student cannot promote');
 select pg_temp.assert_denied('select public.save_material(null, ''{}''::jsonb, array[]::uuid[])', 'student cannot save material');
 
+select pg_temp.assert_denied('insert into public.alunos(user_id,nome,email) values (''44444444-4444-4444-8444-444444444444'',''intruder'',''intruder@portal.test.invalid'')', 'student cannot insert student');
+select pg_temp.assert_denied('insert into public.materiais_privados(titulo,tipo,data_referencia,object_path,nome_original) values (''intruder'',''aula'',''2026-10-23'',''77777777-7777-4777-8777-777777777777.pdf'',''x.pdf'')', 'student cannot insert material');
+select pg_temp.assert_denied(format('insert into public.acessos_materiais(material_id,aluno_id) values (%L,%L)',
+ (select id from public.materiais_privados where titulo='PDF A'), '33333333-3333-4333-8333-333333333333'), 'student cannot insert assignment');
+update public.materiais_privados set publicado=false where titulo='PDF A';
+select pg_temp.assert_true((select publicado from public.materiais_privados where titulo='PDF A'), 'student cannot update material');
+delete from public.acessos_materiais where aluno_id='22222222-2222-4222-8222-222222222222';
+select pg_temp.assert_true((select count(*)=1 from public.acessos_materiais), 'student cannot delete assignment');
+delete from public.materiais_privados where titulo='PDF A';
+select pg_temp.assert_true((select count(*)=1 from public.materiais_privados), 'student cannot delete material');
+delete from public.alunos where user_id='22222222-2222-4222-8222-222222222222';
+select pg_temp.assert_true((select count(*)=1 from public.alunos), 'student cannot delete enrollment');
+
+
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',true);
+select pg_temp.assert_true((select count(*)=1 from public.alunos where user_id='33333333-3333-4333-8333-333333333333'), 'B reads own enrollment');
 select pg_temp.assert_true((select count(*)=0 from public.materiais_privados), 'B cannot see A material');
 select pg_temp.assert_true((select count(*)=0 from public.acessos_materiais), 'B cannot see A assignment');
 
 select set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',true);
+select pg_temp.assert_true((select count(*)=0 from public.alunos), 'unregistered user has no enrollment');
 select pg_temp.assert_true((select count(*)=0 from public.materiais_privados), 'unregistered user sees no material');
 
 reset role;
+select set_config('portal.test_material_id', (select id::text from public.materiais_privados where titulo='PDF A'), true);
 set local role anon;
 select set_config('request.jwt.claim.sub','',true);
 select pg_temp.assert_denied('select count(*) from public.materiais_privados', 'visitor cannot query materials');
+
+select pg_temp.assert_denied('select count(*) from public.alunos', 'visitor cannot query students');
+select pg_temp.assert_denied('select count(*) from public.acessos_materiais', 'visitor cannot query assignments');
+select pg_temp.assert_denied('insert into public.alunos(user_id,nome,email) values (''44444444-4444-4444-8444-444444444444'',''anon'',''anon@portal.test.invalid'')', 'visitor cannot insert student');
+select pg_temp.assert_denied('insert into public.materiais_privados(titulo,tipo,data_referencia,object_path,nome_original) values (''anon'',''aula'',''2026-10-23'',''88888888-8888-4888-8888-888888888888.pdf'',''x.pdf'')', 'visitor cannot insert material');
+select pg_temp.assert_denied('insert into public.acessos_materiais(material_id,aluno_id) values (current_setting(''portal.test_material_id'')::uuid,''33333333-3333-4333-8333-333333333333'')', 'visitor cannot insert assignment');
+select pg_temp.assert_denied('update public.alunos set ativo=false', 'visitor cannot update student');
+select pg_temp.assert_denied('update public.materiais_privados set publicado=false', 'visitor cannot update material');
+select pg_temp.assert_denied('update public.acessos_materiais set aluno_id=aluno_id', 'visitor cannot update assignment');
+select pg_temp.assert_denied('delete from public.alunos', 'visitor cannot delete student');
+select pg_temp.assert_denied('delete from public.materiais_privados', 'visitor cannot delete material');
+select pg_temp.assert_denied('delete from public.acessos_materiais', 'visitor cannot delete assignment');
+
 reset role;
 
 set local role authenticated;
