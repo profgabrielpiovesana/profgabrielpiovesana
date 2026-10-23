@@ -16,7 +16,7 @@ const show = view => {
 const message = text => { status.textContent = text; if (text) status.focus(); };
 
 try {
-  const client = getClient();
+  const client = await getClient();
   const api = createPortalApi(client);
   const auth = createAuthController({ client, getAccess: () => api.getAccess(),
     callbackUrl: new URL('conta.html', location.href).href });
@@ -42,6 +42,7 @@ try {
           if (busy) return;
           busy = true; button.disabled = true; message('Preparando o PDF...');
           const result = await library.download(item.id, mode);
+          if (result.status === 'cancelled') { button.disabled = false; busy = false; return; }
           if (result.status === 'inativo' || result.status === 'sem-acesso') {
             show('login'); render(); message('Seu acesso à biblioteca não está ativo. Fale com o professor.');
           } else if (result.status === 'popup-blocked') message('O navegador bloqueou a nova aba. Permita pop-ups e tente novamente.');
@@ -65,6 +66,7 @@ try {
       return;
     }
     const result = await library.refresh();
+    if (result.status === 'cancelled') return;
     if (result.status !== 'aluno') return showAccess(result);
     $('#student-name').textContent = access.name || '';
     show('student'); render(); message('');

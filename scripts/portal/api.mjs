@@ -5,7 +5,8 @@ function unwrap(result) {
   return result.data;
 }
 
-export function createPortalApi(client = getClient()) {
+export function createPortalApi(client) {
+  if (!client) throw new Error('Cliente de autenticação ausente.');
   return {
     async getAccess() {
       const { data, error } = await client.auth.getUser();
@@ -34,13 +35,13 @@ export function createPortalApi(client = getClient()) {
         .eq('material_id', id).maybeSingle());
       if (!row?.material?.object_path) throw new Error('Material indisponível.');
       const blob = unwrap(await client.storage.from('materiais-alunos')
-        .download(row.material.object_path, {}, { cache: 'no-store' }));
+        .download(row.material.object_path));
       if (!(blob instanceof Blob)) throw new Error('Material indisponível.');
       return blob;
     },
   };
 }
 
-export const getAccess = () => createPortalApi().getAccess();
-export const listMaterials = () => createPortalApi().listMaterials();
-export const downloadMaterial = id => createPortalApi().downloadMaterial(id);
+export const getAccess = async () => createPortalApi(await getClient()).getAccess();
+export const listMaterials = async () => createPortalApi(await getClient()).listMaterials();
+export const downloadMaterial = async id => createPortalApi(await getClient()).downloadMaterial(id);

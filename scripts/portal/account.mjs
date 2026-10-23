@@ -15,7 +15,7 @@ if (!evidence) {
   tell('Este link está incompleto ou expirou. Peça outro convite ou um link de recuperação.');
 } else {
   try {
-    const client = getClient();
+    const client = await getClient();
     const auth = createAuthController({ client });
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (handled || !['PASSWORD_RECOVERY', 'SIGNED_IN'].includes(event)) return;

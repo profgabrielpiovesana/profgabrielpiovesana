@@ -61,3 +61,54 @@ test('PDF preview reserves popup before the first await and revokes Blob URL on 
   app.clear();
   assert.equal(revoked, 1);
 });
+
+test('logout invalidates an in-flight download and closes its reserved window', async () => {
+  let resolveDownload, closed = 0, created = 0;
+  const app = createAlunoController({
+    api: { getAccess: async () => ({ status: 'aluno' }),
+      listMaterials: async () => [{ id: 'm', title: 'T', type: 'aula', date: '2026-10-23', createdAt: '' }],
+      downloadMaterial: () => new Promise(resolve => { resolveDownload = resolve; }) },
+    openWindow: () => ({ close: () => closed++ }),
+    createObjectURL: () => { created++; return 'blob:test'; },
+  });
+  await app.refresh();
+  const pending = app.download('m');
+  await new Promise(resolve => setImmediate(resolve));
+  app.clear();
+  resolveDownload(new Blob(['%PDF-']));
+  assert.equal((await pending).status, 'cancelled');
+  assert.deepEqual(app.items, []);
+  assert.equal(created, 0);
+  assert.equal(closed, 1);
+});
+
+test('logout invalidates a pending library refresh', async () => {
+  let resolveList;
+  const app = createAlunoController({ api: {
+    getAccess: async () => ({ status: 'aluno' }),
+    listMaterials: () => new Promise(resolve => { resolveList = resolve; }),
+  } });
+  const pending = app.refresh();
+  await new Promise(resolve => setImmediate(resolve));
+  app.clear();
+  resolveList([{ id: 'm', title: 'Stale', type: 'lista', date: '2026-10-23', createdAt: '' }]);
+  assert.equal((await pending).status, 'cancelled');
+  assert.deepEqual(app.items, []);
+});
+
+test('navigation and click failures release the created Blob URL', async () => {
+  for (const mode of ['open', 'download']) {
+    let revoked = 0, closed = 0;
+    const app = createAlunoController({ api: {
+      getAccess: async () => ({ status: 'aluno' }),
+      listMaterials: async () => [{ id: 'm', title: 'T', type: 'aula', date: '2026-10-23', createdAt: '' }],
+      downloadMaterial: async () => new Blob(['%PDF-']),
+    }, openWindow: () => ({ location: { replace() { throw Error('navigation'); } }, close: () => closed++ }),
+    createDownloadLink: () => ({ click() { throw Error('click'); } }),
+    createObjectURL: () => 'blob:test', revokeObjectURL: () => revoked++ });
+    await app.refresh();
+    assert.equal((await app.download('m', mode)).status, 'error');
+    assert.equal(revoked, 1);
+    assert.equal(closed, mode === 'open' ? 1 : 0);
+  }
+});
