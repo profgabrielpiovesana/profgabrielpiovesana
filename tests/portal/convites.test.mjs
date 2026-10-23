@@ -6,6 +6,7 @@ const origin = 'https://gabrielpiovesana.github.io';
 const oldId = '11111111-1111-4111-8111-111111111111';
 function fixture({ professor = true, user = { id: 'prof', user_metadata: { role: 'professor' } }, students = [], users = [], failDb = false, failInvite = false } = {}) {
   const calls = [];
+  let dbFails = failDb;
   const auth = {
     async getUser(token) { calls.push('getUser'); return token === 'valid' ? { data: { user }, error: null } : { data: { user: null }, error: { message: 'invalid' } }; },
     async findUserByEmail(email) { calls.push('findUserByEmail'); return users.find(u => u.email === email) ?? null; },
@@ -17,14 +18,14 @@ function fixture({ professor = true, user = { id: 'prof', user_metadata: { role:
     async listStudents() { calls.push('listStudents'); return students; },
     async findStudentByEmail(email) { calls.push('findStudentByEmail'); return students.find(s => s.email === email) ?? null; },
     async findStudentById(id) { calls.push('findStudentById'); return students.find(s => s.user_id === id) ?? null; },
-    async insertStudent(row) { calls.push('insertStudent'); if (failDb) throw Error('DB failed'); students.push({ ...row, ativo: true }); return students.at(-1); },
+    async insertStudent(row) { calls.push('insertStudent'); if (dbFails) throw Error('DB failed'); students.push({ ...row, ativo: true }); return students.at(-1); },
     async setActive(id, active) { calls.push('setActive'); const s = students.find(s => s.user_id === id); if (!s) return null; s.ativo = active; return s; },
   };
   const handler = createHandler({ auth, db, allowedOrigins: [origin] });
   const request = (action, body = {}, headers = {}) => handler(new Request('https://example.supabase.co/functions/v1/gerenciar-alunos', {
     method: 'POST', headers: { Origin: origin, Authorization: 'Bearer valid', 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ action, ...body }),
   }));
-  return { calls, students, request };
+  return { calls, students, request, setDbFailure(value) { dbFails = value; } };
 }
 
 test('rejects wrong origin, no session and metadata-only professor before admin calls', async () => {
@@ -77,4 +78,35 @@ test('provider or enrollment failure is explicit and never deletes an Auth user'
   assert.equal(r.status, 502);
   assert.equal((await r.json()).error, 'matricula_pendente');
   assert.ok(!d.calls.includes('deleteUser'));
+});
+
+test('professor explicitly completes a confirmed account after invite succeeds but enrollment fails', async () => {
+  const users = [];
+  const f = fixture({ users, failDb: true });
+  assert.equal((await f.request('convidar', { nome: 'Ana', email: 'ana@example.com' })).status, 502);
+  users.push({ id: 'new-id', email: 'ana@example.com', email_confirmed_at: '2026-10-23' });
+  f.setDbFailure(false);
+  assert.equal((await f.request('convidar', { nome: 'Ana', email: 'ana@example.com' })).status, 409);
+  const r = await f.request('completar-matricula', { nome: 'Ana', email: 'ANA@EXAMPLE.COM' });
+  assert.equal(r.status, 201);
+  assert.deepEqual(await r.json(), { aluno: { user_id: 'new-id', nome: 'Ana', email: 'ana@example.com', ativo: true } });
+  assert.equal(f.calls.filter(call => call === 'invite').length, 1, 'recovery must not send another email');
+  assert.equal((await f.request('completar-matricula', { nome: 'Ana', email: 'ana@example.com' })).status, 409);
+});
+
+test('completion cannot overwrite an inactive enrollment or run for non-professor', async () => {
+  const users = [{ id: oldId, email: 'ana@example.com', email_confirmed_at: '2026-10-23' }];
+  const students = [{ user_id: oldId, nome: 'Ana', email: 'ana@example.com', ativo: false }];
+  const f = fixture({ users, students });
+  assert.equal((await f.request('completar-matricula', { nome: 'Outra', email: 'ana@example.com' })).status, 409);
+  assert.deepEqual(students, [{ user_id: oldId, nome: 'Ana', email: 'ana@example.com', ativo: false }]);
+  assert.ok(!f.calls.includes('insertStudent'));
+  const outsider = fixture({ professor: false, users });
+  assert.equal((await outsider.request('completar-matricula', { nome: 'Ana', email: 'ana@example.com' })).status, 403);
+  assert.deepEqual(outsider.calls, ['getUser', 'isProfessor']);
+  const pending = fixture({ users: [{ id: oldId, email: 'ana@example.com', email_confirmed_at: null }] });
+  assert.equal((await pending.request('completar-matricula', { nome: 'Ana', email: 'ana@example.com' })).status, 409);
+  assert.ok(!pending.calls.includes('insertStudent'));
+  const missing = fixture();
+  assert.equal((await missing.request('completar-matricula', { nome: 'Ana', email: 'ana@example.com' })).status, 404);
 });

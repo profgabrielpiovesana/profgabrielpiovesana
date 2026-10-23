@@ -29,11 +29,12 @@ O cliente chama `POST /functions/v1/gerenciar-alunos` com `Authorization: Bearer
 | `action` | Campos | Resposta |
 | --- | --- | --- |
 | `convidar` | `nome`, `email` | 201 `{ "aluno": ... }`; duplicado/conta confirmada: 409 |
+| `completar-matricula` | `nome`, `email` | 201 `{ "aluno": ... }` para conta Auth já confirmada sem matrícula; matrícula existente: 409 |
 | `reenviar-convite` | `user_id` | 200 `{ "aluno": ... }`; conta confirmada: 409 |
 | `listar-alunos` | nenhum | 200 `{ "alunos": [...] }` |
 | `definir-ativo` | `user_id`, `ativo` booleano | 200 `{ "aluno": ... }` |
 
-O convite usa o template de e-mail do Supabase Auth. Um link expirado exige `reenviar-convite` para matrícula existente; uma conta já confirmada usa recuperação de senha, não outro convite. Reenviar não altera `ativo`; reativação exige `definir-ativo`. Se o e-mail sair mas a gravação de `alunos` falhar, a resposta é 502 `matricula_pendente`: o aluno segue sem acesso por não ter matrícula. O professor pode tentar `convidar` novamente; o usuário Auth existente não é apagado. A busca de usuários Auth percorre páginas de 1.000 itens, o que basta para este projeto pequeno, mas o custo cresce com o número total de contas.
+O convite usa o template de e-mail do Supabase Auth. Um link expirado exige `reenviar-convite` para matrícula existente; uma conta já confirmada com matrícula usa recuperação de senha, não outro convite. Reenviar não altera `ativo`; reativação exige `definir-ativo`. Se o e-mail sair mas a gravação de `alunos` falhar, a resposta é 502 `matricula_pendente`: o aluno segue sem acesso por não ter matrícula. Se a conta Auth já foi confirmada, o professor usa `completar-matricula` para vincular seu identificador à nova linha sem enviar outro e-mail; se ainda não foi confirmada, tenta `convidar` novamente. A operação de recuperação rejeita uma matrícula existente, inclusive inativa, e não a substitui nem reativa. O usuário Auth existente não é apagado. A busca de usuários Auth percorre páginas de 1.000 itens, o que basta para este projeto pequeno, mas o custo cresce com o número total de contas.
 
 Referências: [convites e conta confirmada](https://supabase.com/docs/guides/auth/users#inviting-users), [API `inviteUserByEmail`](https://supabase.com/docs/reference/javascript/auth-admin-inviteuserbyemail), [paginação de usuários](https://supabase.com/docs/reference/javascript/auth-admin-listusers), [URLs de retorno](https://supabase.com/docs/guides/auth/redirect-urls).
 

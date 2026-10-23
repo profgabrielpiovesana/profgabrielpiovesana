@@ -41,7 +41,23 @@ export function createHandler({ auth, db, allowedOrigins }) {
           const aluno = await db.insertStudent({ user_id: invited.data.user.id, nome, email });
           return json(201, { aluno: publicStudent(aluno) }, cors);
         } catch {
-          return json(502, { error: 'matricula_pendente', message: 'Convite enviado, mas matrícula não salva. O acesso permanece bloqueado; tente cadastrar novamente.' }, cors);
+          return json(502, { error: 'matricula_pendente', message: 'Convite enviado, mas matrícula não salva. O acesso permanece bloqueado; complete a matrícula depois que a conta for confirmada.' }, cors);
+        }
+      }
+      if (action === 'completar-matricula') {
+        const nome = typeof input.nome === 'string' ? input.nome.trim() : '';
+        const email = typeof input.email === 'string' ? input.email.trim().toLowerCase() : '';
+        if (!nome || nome.length > 160 || !emailAddress(email)) return json(400, { error: 'entrada_invalida' }, cors);
+        if (await db.findStudentByEmail(email)) return json(409, { error: 'aluno_existente' }, cors);
+        const user = await auth.findUserByEmail(email);
+        if (!user) return json(404, { error: 'conta_nao_encontrada' }, cors);
+        if (!user.email_confirmed_at && !user.confirmed_at) return json(409, { error: 'conta_nao_confirmada' }, cors);
+        if (await db.findStudentById(user.id)) return json(409, { error: 'aluno_existente' }, cors);
+        try {
+          const aluno = await db.insertStudent({ user_id: user.id, nome, email });
+          return json(201, { aluno: publicStudent(aluno) }, cors);
+        } catch {
+          return json(502, { error: 'matricula_nao_salva' }, cors);
         }
       }
       if (action === 'reenviar-convite') {
