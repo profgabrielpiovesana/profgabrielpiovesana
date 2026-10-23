@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "node --test tests/portal/*.test.mjs",
+    "test:live": "node --test tests/live/*.test.mjs"
   }
 }
