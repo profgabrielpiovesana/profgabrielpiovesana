@@ -1,6 +1,6 @@
 # Área do aluno: banco e testes de acesso
 
-Estado em 2026-10-23: migração e testes preparados, **sem projeto Supabase configurado ou validação real**. Esta é a primeira parte da configuração; convites, SMTP, Edge Function, interface e publicação serão documentados nas próximas tarefas.
+Estado em 2026-10-23: migração, testes e código da função de convites preparados, **sem projeto Supabase configurado ou validação real**. SMTP, interface e publicação ainda dependem das próximas etapas.
 
 ## Configurar um projeto de teste isolado
 
@@ -18,7 +18,24 @@ A tabela `professores` não aceita escrita do navegador. O esquema `private` dev
 insert into public.professores(user_id) values ('UUID_DA_CONTA_DE_GABRIEL');
 ```
 
-Nunca promover automaticamente o primeiro visitante. O papel de professor depende da linha protegida no banco. A futura função de convites usa credenciais privilegiadas apenas no servidor.
+Nunca promover automaticamente o primeiro visitante. O papel de professor depende da linha protegida no banco. A função de convites usa credenciais privilegiadas apenas no servidor.
+
+## Convites e Edge Function
+
+Após configurar o projeto de teste, definir **somente no ambiente da Edge Function** `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `PORTAL_ALLOWED_ORIGIN` e `PORTAL_AUTH_REDIRECT_URL`. A origem é exata (por exemplo `https://gabrielpiovesana.github.io`); o retorno deve ser uma URL HTTPS na mesma origem, dentro de `/profgabrielpiovesana/`. Configurar essa URL exata também em Authentication → URL Configuration → Redirect URLs, com Site URL correto. O navegador nunca escolhe o retorno. Configurar SMTP antes de enviar qualquer convite real. Implantar `supabase/functions/gerenciar-alunos` somente no projeto autorizado; **não implantar nem enviar convites para endereços reais como teste**.
+
+O cliente chama `POST /functions/v1/gerenciar-alunos` com `Authorization: Bearer <JWT>` e JSON. O servidor verifica o JWT em Auth, consulta `professores` com RLS usando esse JWT e só então acessa a API administrativa. `Origin` divergente recebe 403. Respostas JSON têm `error` estável em falhas; dados de aluno contêm apenas `user_id`, `nome`, `email`, `ativo`.
+
+| `action` | Campos | Resposta |
+| --- | --- | --- |
+| `convidar` | `nome`, `email` | 201 `{ "aluno": ... }`; duplicado/conta confirmada: 409 |
+| `reenviar-convite` | `user_id` | 200 `{ "aluno": ... }`; conta confirmada: 409 |
+| `listar-alunos` | nenhum | 200 `{ "alunos": [...] }` |
+| `definir-ativo` | `user_id`, `ativo` booleano | 200 `{ "aluno": ... }` |
+
+O convite usa o template de e-mail do Supabase Auth. Um link expirado exige `reenviar-convite` para matrícula existente; uma conta já confirmada usa recuperação de senha, não outro convite. Reenviar não altera `ativo`; reativação exige `definir-ativo`. Se o e-mail sair mas a gravação de `alunos` falhar, a resposta é 502 `matricula_pendente`: o aluno segue sem acesso por não ter matrícula. O professor pode tentar `convidar` novamente; o usuário Auth existente não é apagado. A busca de usuários Auth percorre páginas de 1.000 itens, o que basta para este projeto pequeno, mas o custo cresce com o número total de contas.
+
+Referências: [convites e conta confirmada](https://supabase.com/docs/guides/auth/users#inviting-users), [API `inviteUserByEmail`](https://supabase.com/docs/reference/javascript/auth-admin-inviteuserbyemail), [paginação de usuários](https://supabase.com/docs/reference/javascript/auth-admin-listusers), [URLs de retorno](https://supabase.com/docs/guides/auth/redirect-urls).
 
 O painel envia o PDF uma vez pelo Storage API com nome gerado em formato UUID `.pdf`, depois chama `save_material`. A RPC valida o professor, metadados e todos os destinatários antes de gravar material e associações numa única transação. Alterações preservam o caminho e nome original. Um upload sem registro fica inacessível a alunos e deve ser limpo pelo painel ao falhar; apagar apenas o caminho criado pela tentativa atual. Não usar links assinados persistentes para download do aluno.
 

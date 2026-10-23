@@ -57,6 +57,11 @@ test('real RLS and Storage revocation using the same JWT', async () => {
     const b = await createUser('b');
     const outsider = await createUser('outsider');
     assert.equal((await admin('/rest/v1/professores', 'POST', [{ user_id: professor.id }])).status, 201);
+    const professorFunction = await request('/functions/v1/gerenciar-alunos', anon, professor.token, 'POST', { action: 'listar-alunos' });
+    assert.equal(professorFunction.status, 200, `professor Edge Function: ${professorFunction.status}`);
+    assert.deepEqual(professorFunction.json().alunos, []);
+    const studentFunction = await request('/functions/v1/gerenciar-alunos', anon, a.token, 'POST', { action: 'listar-alunos' });
+    assert.equal(studentFunction.status, 403, `student Edge Function: ${studentFunction.status}`);
     const identity = await request('/auth/v1/user', anon, outsider.token);
     assert.equal(identity.status, 200, 'unenrolled user has a valid Auth identity');
     assert.equal(identity.json().id, outsider.id);
