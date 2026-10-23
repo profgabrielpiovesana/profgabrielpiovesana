@@ -2,6 +2,11 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/portal/*.test.mjs",
-    "test:live": "node --test tests/live/*.test.mjs"
+    "test:live": "node --test tests/live/*.test.mjs",
+    "build:portal": "node scripts/portal/build.mjs"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.75.0",
+    "esbuild": "0.25.12"
   }
 }

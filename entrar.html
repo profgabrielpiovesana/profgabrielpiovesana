@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0f172a"><title>Área do aluno | Prof. Gabriel Piovesana</title>
+<link rel="stylesheet" href="estilos/site.css"><link rel="stylesheet" href="estilos/portal.css"></head>
+<body><a class="skip" href="#conteudo">Pular para o conteúdo</a>
+<header><nav class="container" aria-label="Navegação principal"><a class="brand" href="index.html"><img src="imagem/C%C3%B3pia%20de%20Logo%20ig.png" alt=""><span>Prof. Gabriel Piovesana</span></a><a href="index.html#materiais">Materiais gratuitos</a></nav></header>
+<main id="conteudo" class="portal-layout container">
+  <div class="portal-intro"><p class="eyebrow">Acompanhamento particular</p><h1>Seu espaço de estudo</h1><p class="lead">Acesse os materiais e as listas que foram liberados para você.</p></div>
+  <section class="portal-panel" id="login-view" aria-labelledby="login-title"><h2 id="login-title">Entrar</h2>
+    <form id="login-form"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="username" required>
+      <label for="password">Senha</label><input id="password" name="password" type="password" autocomplete="current-password" required>
+      <button class="btn dark" type="submit">Entrar na minha biblioteca</button></form>
+    <button class="text-button" id="recover-toggle" type="button">Esqueci minha senha</button>
+    <form id="recover-form" hidden><label for="recover-email">E-mail da conta</label><input id="recover-email" name="email" type="email" autocomplete="email" required>
+      <button class="btn" type="submit">Enviar link de recuperação</button></form>
+  </section>
+  <section class="portal-library" id="student-view" aria-labelledby="student-title" hidden><div class="portal-heading"><div><p class="eyebrow">Área do aluno</p><h2 id="student-title">Minha biblioteca</h2><p id="student-name"></p></div><button class="btn outline" type="button" data-logout>Sair</button></div>
+    <div class="portal-tools"><label for="material-search">Pesquisar por título</label><input id="material-search" type="search" autocomplete="off"><label for="material-type">Tipo</label><select id="material-type"><option value="">Todos</option><option value="aula">Material de aula</option><option value="lista">Lista</option></select></div>
+    <p id="material-count" aria-live="polite"></p><ul id="material-list" class="portal-list"></ul><p id="material-empty" class="portal-empty" hidden>Ainda não há materiais liberados para você.</p><p id="filter-empty" class="portal-empty" hidden>Nenhum material corresponde à busca ou ao filtro.</p>
+  </section>
+  <section class="portal-panel" id="teacher-view" aria-labelledby="teacher-title" hidden><h2 id="teacher-title">Painel do professor</h2><p>O painel de administração será disponibilizado após a configuração do serviço.</p><button class="btn outline" type="button" data-logout>Sair</button></section>
+  <p id="portal-status" class="portal-status" role="status" aria-live="polite" tabindex="-1"></p>
+</main><script type="module" src="scripts/portal/entry.mjs"></script></body></html>
