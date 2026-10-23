@@ -1,6 +1,8 @@
 # Área do aluno — desenho da primeira versão
 
-Data: 2026-10-23. Estado: proposta para revisão de Gabriel.
+Data: 2026-10-23. Estado: aprovado por Gabriel na conversa.
+
+Gabriel confirmou após a aprovação que ainda não tem conta no Supabase.
 
 ## Objetivo e decisões de Gabriel
 
@@ -208,9 +210,10 @@ antes de qualquer contratação.
 
 ## Próxima etapa
 
-Revisão deste desenho por Gabriel. Após a aprovação, escrever o plano de
-implementação, preparar os testes de acesso e construir em etapas. Até aqui
-não há código de produto, serviço contratado ou área privada publicada.
+Desenho aprovado. Escrever o plano de implementação, preparar os testes de
+acesso e construir em etapas. A criação da conta/projeto Supabase e a configuração
+do remetente de e-mail continuam pendentes. Até aqui não há código de produto,
+serviço contratado ou área privada publicada.
 
 ## Referências técnicas consultadas
 
