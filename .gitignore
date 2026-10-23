@@ -6,3 +6,13 @@ scripts/validar.mjs
 .DS_Store
 Thumbs.db
 *~
+
+# Dados locais e artefatos de testes da área do aluno
+.env*
+!.env.example
+node_modules/
+supabase/.temp/
+coverage/
+.nyc_output/
+test-results/
+*.tap
