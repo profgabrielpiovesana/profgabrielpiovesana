@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Execution:** Plano aprovado por Gabriel; subagentes por etapa e revisões a cada entrega.
+
 **Goal:** Entregar login por convite, biblioteca individual de PDFs e painel de Gabriel com controle efetivo de acesso.
 
 **Architecture:** Preservar o site estático no GitHub Pages e acrescentar páginas privadas que usam Supabase Auth, Postgres/RLS, Storage privado e uma Edge Function administrativa. A autorização deve ser conferida no servidor em cada leitura e escrita. Reutilizar o visual atual e evitar um framework de interface.
@@ -52,7 +54,7 @@ As tarefas 1–5 podem ter código preparado localmente; testes de banco e integ
 
 Se o projeto externo ainda não estiver pronto, manter os testes reais identificados como não executados e continuar apenas o trabalho independente. `npm run test:live` deve falhar explicitamente quando faltar configuração, em vez de retornar uma aprovação vazia. Não aplicar testes destrutivos a um projeto com alunos reais.
 
-### Tarefa 1: contratos e validação de entrada
+### Task 1: contratos e validação de entrada
 
 **Files:** criar `scripts/portal/rules.mjs`, `tests/portal/rules.test.mjs`, `package.json`; modificar `.gitignore`.
 
@@ -64,7 +66,7 @@ Se o projeto externo ainda não estiver pronto, manter os testes reais identific
 - [ ] Implementar as funções puras e mensagens por campo; ignorar `.env*` (exceto exemplo sem segredos), `node_modules/`, `supabase/.temp/` e artefatos de teste.
 - [ ] Repetir o comando: todos os testes devem passar. Commit `test/feat: validar entradas da área do aluno` com arquivos explícitos.
 
-### Tarefa 2: banco, políticas e armazenamento privado
+### Task 2: banco, políticas e armazenamento privado
 
 **Files:** criar migração SQL, testes SQL e `tests/live/portal-access.test.mjs`; iniciar `docs/area-do-aluno-configuracao.md`.
 
@@ -78,7 +80,7 @@ Se o projeto externo ainda não estiver pronto, manter os testes reais identific
 - [ ] Dar somente ao professor upload/delete no bucket. Arquivo carregado antes do registro do material não pode ser lido por aluno. Implementar `save_material` validando papel, campos e existência de todos os destinatários; inserir/atualizar material e associações atomicamente. Testar que destinatário inválido reverte toda a operação, preservando a versão anterior.
 - [ ] Executar novamente testes SQL e HTTP; esperar sucesso de todos os controles positivos e negativos. Registrar pendência se o serviço externo não estiver disponível. Commit das regras e testes, sem segredos ou PDFs privados.
 
-### Tarefa 3: convites e administração de contas no servidor
+### Task 3: convites e administração de contas no servidor
 
 **Files:** criar `supabase/functions/gerenciar-alunos/{index.ts,handler.mjs}` e `tests/portal/convites.test.mjs`; ampliar a documentação de configuração.
 
@@ -91,7 +93,7 @@ Se o projeto externo ainda não estiver pronto, manter os testes reais identific
 - [ ] Fixar URLs de retorno por configuração de servidor; nunca aceitar URL arbitrária enviada pelo navegador. Documentar convite expirado e recuperação para conta já confirmada.
 - [ ] Repetir testes locais; complementar a suíte real com chamada da função por aluno e professor. Implantar função apenas após vincular projeto autorizado. Commit da função e documentação.
 
-### Tarefa 4: sessão e biblioteca do aluno
+### Task 4: sessão e biblioteca do aluno
 
 **Files:** criar páginas de entrada/conta/aluno, `client.mjs`, `api.mjs`, `auth.mjs`, `aluno.mjs`, `portal.css`, configuração pública, build do SDK e `tests/portal/{auth,aluno}.test.mjs`.
 
@@ -104,7 +106,7 @@ Se o projeto externo ainda não estiver pronto, manter os testes reais identific
 - [ ] Abrir/baixar PDFs por download autenticado; limpar estado e URLs na saída/desativação. Mensagens e estados de erro acessíveis, sem detalhes internos ou informações de terceiros.
 - [ ] Executar testes locais e build; conferir em navegador real desktop/celular, inclusive foco/teclado e recuperação de senha. Simulações de serviço provam comportamento da interface, não as políticas. Commit da interface do aluno.
 
-### Tarefa 5: painel do professor e publicação de materiais
+### Task 5: painel do professor e publicação de materiais
 
 **Files:** criar `professor.html`, `scripts/portal/professor.mjs`, `tests/portal/professor.test.mjs`; ampliar `api.mjs` e `portal.css`.
 
@@ -117,7 +119,7 @@ Se o projeto externo ainda não estiver pronto, manter os testes reais identific
 - [ ] Usar gravação transacional da tarefa 2 para metadados/associações. Mostrar sucesso somente após confirmação de todas as etapas; ao falhar, limpar apenas o upload desta tentativa quando for seguro e relatar falha de limpeza sem esconder o erro original.
 - [ ] Repetir testes e verificar painel com professor e tentativa de acesso como aluno em navegador real. Commit do painel.
 
-### Tarefa 6: integração, configuração real e publicação
+### Task 6: integração, configuração real e publicação
 
 **Files:** modificar `index.html` e ajuste pontual em `estilos/site.css`; completar `docs/area-do-aluno-configuracao.md` e testes reais.
 
