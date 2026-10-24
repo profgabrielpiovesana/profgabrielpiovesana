@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { withFixtureCleanup, isMissingStorageObject } from './support.mjs';
 
 const required = ['PORTAL_LIVE_OPT_IN', 'PORTAL_LIVE_TEST_PROJECT', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
 for (const name of required) assert.ok(process.env[name], `Missing ${name}; real tests require an isolated test project`);
@@ -50,8 +51,7 @@ function denied(response, label) { assert.ok([401, 403, 404].includes(response.s
 function deniedOrNoop(response, label) { assert.ok([200, 204, 401, 403, 404].includes(response.status), `${label}: unexpected HTTP ${response.status}`); }
 
 // This test mutates only synthetic fixtures in an explicitly marked disposable project.
-test('real RLS and Storage revocation using the same JWT', async () => {
-  try {
+test('real RLS and Storage revocation using the same JWT', async () => withFixtureCleanup(async () => {
     const professor = await createUser('prof');
     const a = await createUser('a');
     const b = await createUser('b');
@@ -179,19 +179,19 @@ test('real RLS and Storage revocation using the same JWT', async () => {
     assert.equal((await admin(`/rest/v1/materiais_privados?id=eq.${materialId}`, 'PATCH', { publicado: false })).status, 204);
     assert.equal((await table('materiais_privados', a.token)).json().length, 0);
     denied(await download(a.token), 'unpublished download');
-  } finally {
+  }, async () => {
     const cleanupErrors = [];
-    async function cleanup(label, work) {
+    async function cleanup(label, work, allowMissingObject = false) {
       try {
         const result = await work();
-        if (![200, 204, 404].includes(result.status)) cleanupErrors.push(`${label}: HTTP ${result.status}`);
+        if (![200, 204, 404].includes(result.status) && !(allowMissingObject && isMissingStorageObject(result))) cleanupErrors.push(`${label}: HTTP ${result.status}`);
       } catch (error) { cleanupErrors.push(`${label}: ${error.message}`); }
     }
     if (scratchMaterialId) await cleanup('scratch assignments', () => admin(`/rest/v1/acessos_materiais?material_id=eq.${scratchMaterialId}`, 'DELETE'));
     await cleanup('scratch material', () => admin(`/rest/v1/materiais_privados?object_path=eq.${scratchPath}`, 'DELETE'));
     if (materialId) await cleanup('assignments', () => admin(`/rest/v1/acessos_materiais?material_id=eq.${materialId}`, 'DELETE'));
     await cleanup('material', () => admin(`/rest/v1/materiais_privados?object_path=eq.${path}`, 'DELETE'));
-    await cleanup('PDF', () => admin(`/storage/v1/object/materiais-alunos/${path}`, 'DELETE'));
+    await cleanup('PDF', () => admin(`/storage/v1/object/materiais-alunos/${path}`, 'DELETE'), true);
     for (const id of users) {
       await cleanup('student', () => admin(`/rest/v1/alunos?user_id=eq.${id}`, 'DELETE'));
       await cleanup('professor', () => admin(`/rest/v1/professores?user_id=eq.${id}`, 'DELETE'));
@@ -225,5 +225,4 @@ test('real RLS and Storage revocation using the same JWT', async () => {
       await expectEmpty('assignment', `/rest/v1/acessos_materiais?select=material_id&material_id=eq.${id}`);
     }
     assert.deepEqual(cleanupErrors, [], 'Synthetic fixture cleanup failed');
-  }
-});
+  }));

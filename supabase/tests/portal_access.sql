@@ -2,6 +2,23 @@
 -- This script creates synthetic users and rolls back all SQL fixtures.
 begin;
 
+-- Check the actual table ACLs before owner-created fixtures could hide a missing
+-- service_role grant. HTTP acceptance additionally exercises REST as this role.
+do $$
+declare spec record;
+begin
+  for spec in select * from (values
+    ('professores', 'SELECT'), ('professores', 'INSERT'), ('professores', 'DELETE'),
+    ('alunos', 'SELECT'), ('alunos', 'INSERT'), ('alunos', 'UPDATE'), ('alunos', 'DELETE'),
+    ('materiais_privados', 'SELECT'), ('materiais_privados', 'UPDATE'), ('materiais_privados', 'DELETE'),
+    ('acessos_materiais', 'SELECT'), ('acessos_materiais', 'INSERT'), ('acessos_materiais', 'DELETE')
+  ) as required(table_name, privilege_name) loop
+    if not has_table_privilege('service_role', 'public.' || spec.table_name, spec.privilege_name) then
+      raise exception 'FAIL: service_role lacks % on %', spec.privilege_name, spec.table_name;
+    end if;
+  end loop;
+end $$;
+
 create temp table portal_fixture (kind text primary key, id uuid not null);
 insert into portal_fixture values
  ('professor','11111111-1111-4111-8111-111111111111'),
