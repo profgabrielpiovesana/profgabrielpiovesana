@@ -68,34 +68,47 @@ export function createPortalApi(client) {
       if (!validFile.ok) throw new Error(Object.values(validFile.errors).join(' '));
       const path = `${crypto.randomUUID()}.pdf`;
       const bucket = client.storage.from('materiais-alunos');
+      let rpcOutcome = 'not-started';
       try {
         const upload = await bucket.upload(path, file, { contentType: 'application/pdf', upsert: false });
         if (upload.error) throw upload.error;
+        rpcOutcome = 'unknown';
         const { data, error } = await client.rpc('save_material', {
           p_id: null,
           p_metadata: materialMetadata(checked.data, { object_path: path, nome_original: file.name, publicado: true }),
           p_student_ids: checked.data.studentIds,
         });
-        if (error) throw error;
+        if (error) {
+          // A SQLSTATE from the database confirms the transaction was rejected.
+          if (typeof error.code === 'string' && /^(22|23|42|P0)[0-9A-Z]{3}$/.test(error.code)) rpcOutcome = 'sql-rejected';
+          throw error;
+        }
         return data;
       } catch (cause) {
-        // A network error can hide a committed RPC. Never delete its object without readback.
-        let safeToRemove = false;
-        try {
-          const record = unwrap(await client.from('materiais_privados').select('id').eq('object_path', path).maybeSingle());
-          safeToRemove = !record;
-        } catch { /* uncertain server state: preserve object */ }
+        const safeToRemove = rpcOutcome !== 'unknown';
+        let readback = 'indisponível';
+        if (!safeToRemove) {
+          // Readback is diagnostic only: an empty snapshot cannot rule out a later commit.
+          try {
+            const row = unwrap(await client.from('materiais_privados').select('id').eq('object_path', path).maybeSingle());
+            readback = row ? 'registro localizado' : 'registro ainda não localizado';
+          } catch { /* preserve object on unknown outcome */ }
+        }
         if (safeToRemove) {
           try {
             const { error } = await bucket.remove([path]);
             if (error) throw error;
           } catch (cleanupError) { throw new Error(`Falha ao salvar o material: ${cause.message}. A limpeza do arquivo também falhou: ${cleanupError.message}`, { cause }); }
         }
-        throw new Error(`Falha ao salvar o material: ${cause.message}${safeToRemove ? '' : '. O estado do arquivo requer conferência pelo professor'}`, { cause });
+        throw new Error(`Falha ao salvar o material: ${cause.message}${safeToRemove ? '' : `. O estado do arquivo requer conferência pelo professor (${readback})`}`, { cause });
       }
     },
     async updateMaterial(id, { metadata, studentIds }) {
       const current = await this.getTeacherMaterial(id);
+      const students = await this.listStudents();
+      if (current.studentIds.some(studentId => !students.some(student => student.user_id === studentId && student.ativo))) {
+        throw new Error('Reative todos os destinatários atuais antes de editar este material.');
+      }
       const checked = validateMaterial({ ...metadata, studentIds });
       if (!checked.ok) throw new Error(Object.values(checked.errors).join(' '));
       const { data, error } = await client.rpc('save_material', {

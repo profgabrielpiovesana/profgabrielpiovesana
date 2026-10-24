@@ -67,6 +67,10 @@ export function mountProfessorPanel({ root, api, message }) {
       const info = document.createElement('p'); info.textContent = `${material.type === 'lista' ? 'Lista' : 'Material de aula'} · ${material.date} · ${material.published ? 'Publicado' : 'Retirado'} · ${material.studentIds.length} destinatário(s)`;
       const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'Editar';
       edit.addEventListener('click', () => {
+        if (material.studentIds.some(id => !controller.students.some(student => student.user_id === id && student.ativo))) {
+          announce('Reative todos os destinatários atuais antes de editar este material.');
+          return;
+        }
         $('#editing-material-id').value = material.id;
         $('#teacher-material-title').value = material.title;
         $('#teacher-material-type').value = material.type;
