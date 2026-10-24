@@ -66,6 +66,21 @@ select public.save_material((select id from public.materiais_privados where titu
 select pg_temp.assert_true((select descricao='edited' and object_path='55555555-5555-4555-8555-555555555555.pdf' from public.materiais_privados where titulo='PDF A'), 'professor edits metadata without moving PDF');
 
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
+-- SQL operation simulation only: HTTP acceptance must also run against Storage.
+reset role;
+insert into storage.objects(bucket_id,name) values ('materiais-alunos','55555555-5555-4555-8555-555555555555.pdf');
+set local role authenticated;
+select set_config('storage.operation','',true);
+select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='materiais-alunos'), 'student missing operation denied');
+select set_config('storage.operation','storage.object.sign',true);
+select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='materiais-alunos'), 'student single signing denied');
+select set_config('storage.operation','storage.object.sign_many',true);
+select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='materiais-alunos'), 'student batch signing denied');
+select set_config('storage.operation','storage.object.list',true);
+select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='materiais-alunos'), 'student object listing denied');
+select set_config('storage.operation','storage.object.get_authenticated',true);
+select pg_temp.assert_true((select count(*)=1 from storage.objects where bucket_id='materiais-alunos'), 'assigned active student authenticated download allowed');
+
 select pg_temp.assert_true((select count(*)=1 from public.alunos), 'A reads own enrollment');
 select pg_temp.assert_true((select count(*)=1 from public.materiais_privados), 'A reads assigned published material');
 select pg_temp.assert_true((select count(*)=1 from public.acessos_materiais), 'A reads own assignment');

@@ -12,7 +12,7 @@ export function createHandler({ auth, db, allowedOrigins }) {
     if (origin && !allowed.has(origin)) return json(403, { error: 'origem_negada' });
     const cors = origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {};
     if (request.method === 'OPTIONS') return new Response(null, {
-      status: 204, headers: { ...cors, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type' },
+      status: 204, headers: { ...cors, 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info' },
     });
     if (request.method !== 'POST') return json(405, { error: 'metodo_invalido' }, cors);
     const bearer = /^Bearer (\S+)$/i.exec(request.headers.get('Authorization') ?? '');
@@ -26,7 +26,15 @@ export function createHandler({ auth, db, allowedOrigins }) {
       if (!input || typeof input !== 'object') return json(400, { error: 'entrada_invalida' }, cors);
       const action = input.action;
       if (action === 'listar-alunos') {
-        return json(200, { alunos: (await db.listStudents()).map(publicStudent) }, cors);
+        const alunos = [];
+        for (const student of await db.listStudents()) {
+          const user = await auth.getUserById(student.user_id);
+          if (!user || user.email?.toLowerCase() !== student.email.toLowerCase()) {
+            return json(502, { error: 'conta_inconsistente' }, cors);
+          }
+          alunos.push({ ...publicStudent(student), invitationStatus: user.email_confirmed_at || user.confirmed_at ? 'confirmed' : 'pending' });
+        }
+        return json(200, { alunos }, cors);
       }
       if (action === 'convidar') {
         const nome = typeof input.nome === 'string' ? input.nome.trim() : '';

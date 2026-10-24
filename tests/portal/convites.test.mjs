@@ -11,7 +11,7 @@ function fixture({ professor = true, user = { id: 'prof', user_metadata: { role:
     async getUser(token) { calls.push('getUser'); return token === 'valid' ? { data: { user }, error: null } : { data: { user: null }, error: { message: 'invalid' } }; },
     async findUserByEmail(email) { calls.push('findUserByEmail'); return users.find(u => u.email === email) ?? null; },
     async getUserById(id) { calls.push('getUserById'); return users.find(u => u.id === id) ?? null; },
-    async inviteUserByEmail(email) { calls.push('invite'); return failInvite ? { data: null, error: { message: 'provider failed' } } : { data: { user: { id: users.find(u => u.email === email)?.id ?? 'new-id', email } }, error: null }; },
+    async inviteUserByEmail(email) { calls.push('invite'); if (!users.some(u => u.email === email)) users.push({ id: 'new-id', email }); return failInvite ? { data: null, error: { message: 'provider failed' } } : { data: { user: { id: users.find(u => u.email === email)?.id ?? 'new-id', email } }, error: null }; },
   };
   const db = {
     async isProfessor(id, token) { calls.push('isProfessor'); assert.equal(token, 'valid'); return professor && id === 'prof'; },
@@ -43,7 +43,7 @@ test('invites a new student and lists minimal account data', async () => {
   const r = await f.request('convidar', { nome: 'Ana', email: 'ANA@EXAMPLE.COM', redirectTo: 'https://evil.example' });
   assert.equal(r.status, 201);
   assert.deepEqual(await r.json(), { aluno: { user_id: 'new-id', nome: 'Ana', email: 'ana@example.com', ativo: true } });
-  assert.deepEqual((await (await f.request('listar-alunos')).json()).alunos, [{ user_id: 'new-id', nome: 'Ana', email: 'ana@example.com', ativo: true }]);
+  assert.deepEqual((await (await f.request('listar-alunos')).json()).alunos, [{ user_id: 'new-id', nome: 'Ana', email: 'ana@example.com', ativo: true, invitationStatus: 'pending' }]);
 });
 
 test('duplicate enrollment, confirmed account and inactive enrollment never get an implicit invite or activation', async () => {
@@ -84,7 +84,7 @@ test('professor explicitly completes a confirmed account after invite succeeds b
   const users = [];
   const f = fixture({ users, failDb: true });
   assert.equal((await f.request('convidar', { nome: 'Ana', email: 'ana@example.com' })).status, 502);
-  users.push({ id: 'new-id', email: 'ana@example.com', email_confirmed_at: '2026-10-23' });
+  Object.assign(users.find(u => u.id === 'new-id'), { email_confirmed_at: '2026-10-23' });
   f.setDbFailure(false);
   assert.equal((await f.request('convidar', { nome: 'Ana', email: 'ana@example.com' })).status, 409);
   const r = await f.request('completar-matricula', { nome: 'Ana', email: 'ANA@EXAMPLE.COM' });
@@ -109,4 +109,36 @@ test('completion cannot overwrite an inactive enrollment or run for non-professo
   assert.ok(!pending.calls.includes('insertStudent'));
   const missing = fixture();
   assert.equal((await missing.request('completar-matricula', { nome: 'Ana', email: 'ana@example.com' })).status, 404);
+});
+
+test('listing derives only invitationStatus from Auth without changing inactive enrollment', async () => {
+  const rows = [
+    { user_id: oldId, nome: 'Pending', email: 'pending@example.com', ativo: false },
+    { user_id: '22222222-2222-4222-8222-222222222222', nome: 'Confirmed', email: 'confirmed@example.com', ativo: true },
+  ];
+  const f = fixture({ students: rows, users: rows.map((s, i) => ({ id: s.user_id, email: s.email, email_confirmed_at: i ? '2026-10-24' : null, token: 'never-return' })) });
+  const response = await f.request('listar-alunos');
+  assert.equal(response.status, 200);
+  assert.deepEqual((await response.json()).alunos, rows.map((row, i) => ({ ...row, invitationStatus: i ? 'confirmed' : 'pending' })));
+  assert.equal(rows[0].ativo, false);
+  assert.ok(!f.calls.includes('invite'));
+});
+
+test('CORS preflight permits the actual bundled SDK functions.invoke headers', async () => {
+  const { createClient } = await import('../../scripts/portal/vendor/supabase.mjs');
+  let sent;
+  const client = createClient('https://example.supabase.co', 'public-test-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: async (url, options) => { sent = new Headers(options.headers); return new Response('{}', { headers: { 'Content-Type': 'application/json' } }); } },
+  });
+  await client.functions.invoke('gerenciar-alunos', { body: { action: 'listar-alunos' } });
+  assert.ok(sent.has('x-client-info'));
+  const handler = createHandler({ auth: {}, db: {}, allowedOrigins: [origin] });
+  const preflight = await handler(new Request('https://example.supabase.co/functions/v1/gerenciar-alunos', {
+    method: 'OPTIONS', headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': [...sent.keys()].join(', ') },
+  }));
+  assert.equal(preflight.status, 204);
+  assert.equal(preflight.headers.get('Access-Control-Allow-Origin'), origin);
+  const allowed = preflight.headers.get('Access-Control-Allow-Headers').split(/,\s*/);
+  for (const header of sent.keys()) assert.ok(allowed.includes(header), `Missing CORS header: ${header}`);
 });

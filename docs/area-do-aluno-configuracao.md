@@ -1,12 +1,13 @@
 # Área do aluno: banco e testes de acesso
 
-Estado em 2026-10-24: projeto de teste `rlgxtgxqhpvnfghcmkmu` criado por Gabriel, cadastro público desabilitado, migração aplicada e teste SQL real aprovado. A releitura encontrou zero registros sintéticos e bucket privado. URL e chave **publicável** estão em `dados/portal-config.json`. Professor inicial, Edge Function, SMTP, teste HTTP, fluxos reais de Auth e publicação continuam pendentes.
+Estado em 2026-10-24: projeto de teste `rlgxtgxqhpvnfghcmkmu` criado por Gabriel, cadastro público desabilitado, migração 001 aplicada e teste SQL anterior aprovado (002 e novas asserções aguardam validação). A releitura encontrou zero registros sintéticos e bucket privado. URL e chave **publicável** estão em `dados/portal-config.json`. Professor inicial, Edge Function, SMTP, teste HTTP, fluxos reais de Auth e publicação continuam pendentes.
 
 ## Configurar um projeto de teste isolado
 
 1. Usar o projeto isolado já criado, sem alunos nem PDFs reais. O cadastro público foi desabilitado no painel; confirmar que continua desabilitado antes da ativação. A URL e a chave publicável podem ficar no JSON do site. A chave `service_role` é exclusivamente de servidor e teste seguro; nunca vai para navegador, GitHub Pages ou Git.
 2. A migração `supabase/migrations/202610230001_portal.sql` já foi aplicada ao projeto. Ela cria quatro tabelas com RLS, funções de autorização, o bucket privado `materiais-alunos` e suas políticas. O bucket aceita apenas `application/pdf` até **20.000.000 bytes**. Conferir no painel que o limite global de arquivos do projeto permite esse tamanho.
-3. O script exato `supabase/tests/portal_access.sql` já passou no SQL Editor após a migração. Ele cria usuários sintéticos dentro de uma transação e termina em `ROLLBACK`. Reexecutá-lo somente no projeto isolado; se o runner envolver o arquivo em transação própria, executar as asserções dentro dela sem commit.
+   Aplicar todas as migrações em ordem: `202610230001_portal.sql`, depois `202610230002_storage_download_only.sql`. Em um projeto com 001 aplicada, executar apenas 002. A segunda restringe o SELECT do aluno à operação autenticada de download; criação de URL assinada individual/em lote e listagem do bucket não são autorizadas. O professor mantém acesso administrativo. Verificar antes `to_regprocedure('storage.allow_only_operation(text)')`: deve existir. Se faltar, interromper a ativação e atualizar/verificar o serviço Storage; nunca remover a condição nem usar fallback permissivo. A migração aborta se o helper estiver ausente.
+3. O script exato `supabase/tests/portal_access.sql` passou no SQL Editor na versão anterior após 001; as novas asserções de operação precisam ser executadas após 002. Ele cria usuários sintéticos dentro de uma transação e termina em `ROLLBACK`. Reexecutá-lo somente no projeto isolado; se o runner envolver o arquivo em transação própria, executar as asserções dentro dela sem commit.
 4. Para HTTP real, fornecer `PORTAL_LIVE_OPT_IN=YES_ISOLATED_TEST_PROJECT`, `PORTAL_LIVE_TEST_PROJECT=true`, `PORTAL_LIVE_TEST_PROJECT_REF` (subdomínio do projeto), `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` pelo ambiente seguro. Executar `npm run test:live` depois de implantar a função. O teste cria quatro contas sintéticas e um PDF sintético, verifica os bytes e as revogações na mesma sessão, apaga somente os identificadores que criou e relê caminhos, IDs e usuários para confirmar a limpeza. Se falhar no meio, conferir a limpeza no projeto de teste antes de repetir. Nunca apontar esse teste para produção.
 5. `npm test` roda somente testes locais, sem rede nem credenciais. Ausência de configuração em `npm run test:live` é falha explícita, não teste ignorado.
 
@@ -47,3 +48,11 @@ O painel envia o PDF uma vez pelo Storage API com nome gerado em formato UUID `.
 ## Limites de verificação
 
 O teste SQL passou no projeto isolado em 2026-10-23; isso prova consultas e gravações no Postgres com papéis sintéticos, mas não autenticação real nem o caminho HTTP do Storage. O teste HTTP ainda precisa passar e comprovar acesso ao PDF por Storage, inclusive bloqueio imediato após desativar, desassociar ou retirar publicação. Também faltam fluxos reais de convite, senha, recuperação, saída, permissões via API, navegador em computador e celular e verificação do Pages publicado. Um arquivo já baixado não pode ser recolhido.
+
+## Contratos da revisão final
+
+`listar-alunos` inclui `invitationStatus: "pending" | "confirmed"`, derivado no servidor de Auth. Os únicos outros campos são `user_id`, `nome`, `email`, `ativo`. Confirmação e ativação são estados independentes; reenviar convite não reativa matrícula. Falhas/inconsistências de Auth fazem a listagem falhar, sem assumir confirmação. O painel oferece reenvio apenas para convite pendente.
+
+O preflight da Edge Function permite explicitamente `authorization, apikey, content-type, x-client-info`, incluindo o cabeçalho enviado pelo SDK fixado em 2.75.0. O teste local usa o bundle real com fetch simulado, sem acessar serviços.
+
+O teste HTTP isolado exige que um aluno ativo e destinatário baixe o PDF e seja impedido de criar URLs assinadas individuais e em lote. As simulações SQL de `storage.operation` não substituem essa aceitação HTTP. Fonte das operações: https://github.com/supabase/storage/blob/master/src/http/routes/operations.ts; helpers: https://supabase.com/docs/guides/storage/schema/helper-functions.

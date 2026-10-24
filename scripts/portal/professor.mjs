@@ -44,12 +44,14 @@ export function mountProfessorPanel({ root, api, message }) {
     for (const student of controller.students) {
       const li = document.createElement('li'); li.className = 'portal-item';
       const name = document.createElement('strong'); name.textContent = student.nome;
-      const details = document.createElement('p'); details.textContent = `${student.email} · ${student.ativo ? 'Ativo' : 'Inativo'}`;
+      const details = document.createElement('p'); details.textContent = `${student.email} · ${student.ativo ? 'Ativo' : 'Inativo'} · ${student.invitationStatus === 'pending' ? 'Convite pendente' : 'Conta confirmada'}`;
       const toggle = document.createElement('button'); toggle.type = 'button'; toggle.textContent = student.ativo ? 'Desativar' : 'Reativar';
       toggle.addEventListener('click', () => run(async () => { await api.setStudentActive(student.user_id, !student.ativo); return `Aluno ${student.ativo ? 'desativado' : 'reativado'}.`; }));
       const resend = document.createElement('button'); resend.type = 'button'; resend.textContent = 'Reenviar convite';
       resend.addEventListener('click', () => run(async () => { await api.resendInvite(student.user_id); return 'Convite reenviado.'; }));
-      li.append(name, details, toggle, resend); studentList.append(li);
+      li.append(name, details, toggle);
+      if (student.invitationStatus === 'pending') li.append(resend);
+      studentList.append(li);
     }
     const recipients = $('#teacher-recipient-list'); recipients.replaceChildren();
     for (const student of controller.students.filter(item => item.ativo)) {

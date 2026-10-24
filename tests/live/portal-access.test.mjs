@@ -145,6 +145,16 @@ test('real RLS and Storage revocation using the same JWT', async () => {
     const known = await download(a.token);
     assert.equal(known.status, 200);
     assert.deepEqual(known.bytes, pdf);
+    denied(await request(`/storage/v1/object/sign/materiais-alunos/${path}`, anon, a.token, 'POST', { expiresIn: 60 }), 'assigned active student single signing');
+    const batch = await request('/storage/v1/object/sign/materiais-alunos', anon, a.token, 'POST', { paths: [path], expiresIn: 60 });
+    // Batch signing can return HTTP 200 with a per-object denial.
+    if (batch.status === 200) {
+      const results = batch.json();
+      assert.equal(results.length, 1);
+      assert.ok(results[0].error, 'batch signing must return an object error');
+      assert.ok(!results[0].signedURL && !results[0].signedUrl, 'batch signing must not issue a URL');
+    } else denied(batch, 'assigned active student batch signing');
+    assert.equal((await download(a.token)).status, 200, 'signing denial retains authenticated download');
     assert.equal((await table('materiais_privados', b.token)).json().length, 0);
     assert.equal((await table('materiais_privados', outsider.token)).json().length, 0);
     denied(await download(outsider.token), 'authenticated outsider download');
