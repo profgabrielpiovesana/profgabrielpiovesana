@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { withFixtureCleanup, isMissingStorageObject } from '../live/support.mjs';
+import { withFixtureCleanup, isMissingStorageObject, isDeniedResponse } from '../live/support.mjs';
 
 test('fixture cleanup preserves the original failure when cleanup also fails', async () => {
   const original = new Error('permission denied table professores');
@@ -29,9 +29,14 @@ test('Storage cleanup recognizes only the observed wrapped NoSuchKey absence', (
   const absent = { statusCode: '404', error: 'not_found', message: 'Object not found', code: 'NoSuchKey' };
   const response = (body, status = 400) => ({ status, json: () => body });
   assert.equal(isMissingStorageObject(response(absent)), true);
+  assert.equal(isDeniedResponse(response(absent)), true);
+  assert.equal(isDeniedResponse(response({ statusCode: '403', error: 'Unauthorized' }, 400)), true);
+  assert.equal(isDeniedResponse(response({}, 403)), true);
+  assert.equal(isDeniedResponse(response({ statusCode: '400', error: 'Bad Request' }, 400)), false);
   for (const body of [{}, { ...absent, code: 'AccessDenied' }, { ...absent, statusCode: '400' }, { ...absent, error: 'unauthorized' }]) {
     assert.equal(isMissingStorageObject(response(body)), false);
   }
   assert.equal(isMissingStorageObject(response(absent, 403)), false);
   assert.equal(isMissingStorageObject({ status: 400, json: () => { throw Error('invalid JSON'); } }), false);
 });
+

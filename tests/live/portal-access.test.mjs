@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { withFixtureCleanup, isMissingStorageObject } from './support.mjs';
+import { withFixtureCleanup, isMissingStorageObject, isDeniedResponse } from './support.mjs';
 
 const required = ['PORTAL_LIVE_OPT_IN', 'PORTAL_LIVE_TEST_PROJECT', 'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'];
 for (const name of required) assert.ok(process.env[name], `Missing ${name}; real tests require an isolated test project`);
@@ -46,8 +46,9 @@ async function table(name, token, query = '') {
   if (token) assert.equal(result.status, 200, `read ${name}: ${result.status}`);
   return result;
 }
-async function download(token) { return request(`/storage/v1/object/authenticated/materiais-alunos/${path}`, anon, token); }
-function denied(response, label) { assert.ok([401, 403, 404].includes(response.status), `${label}: expected auth denial, got HTTP ${response.status}`); }
+// Smart CDN may serve an identical earlier GET; a unique query forces the origin RLS check.
+async function download(token) { return request(`/storage/v1/object/authenticated/materiais-alunos/${path}?cb=${randomUUID()}`, anon, token); }
+function denied(response, label) { assert.ok(isDeniedResponse(response), `${label}: expected auth denial, got HTTP ${response.status}`); }
 function deniedOrNoop(response, label) { assert.ok([200, 204, 401, 403, 404].includes(response.status), `${label}: unexpected HTTP ${response.status}`); }
 
 // This test mutates only synthetic fixtures in an explicitly marked disposable project.

@@ -12,8 +12,8 @@ export async function withFixtureCleanup(work, cleanup) {
   return result;
 }
 
-// Storage wraps a missing-object DELETE as HTTP 400 in the deployed API.
-// Do not treat other 400 responses (including authorization failures) as absence.
+// Storage wraps a missing-object DELETE or RLS-hidden object/signing denial as HTTP 400 in the deployed API.
+// Do not treat other 400 responses (such as malformed requests) as absence or auth denial.
 export function isMissingStorageObject(response) {
   if (response.status !== 400) return false;
   try {
@@ -22,3 +22,14 @@ export function isMissingStorageObject(response) {
       body.message === 'Object not found' && body.code === 'NoSuchKey';
   } catch { return false; }
 }
+
+export function isDeniedResponse(response) {
+  if ([401, 403, 404].includes(response.status)) return true;
+  if (isMissingStorageObject(response)) return true;
+  if (response.status !== 400) return false;
+  try {
+    const body = response.json();
+    return ['401', '403'].includes(String(body.statusCode));
+  } catch { return false; }
+}
+

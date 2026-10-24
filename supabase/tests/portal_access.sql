@@ -95,7 +95,7 @@ select set_config('storage.operation','storage.object.sign_many',true);
 select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='materiais-alunos'), 'student batch signing denied');
 select set_config('storage.operation','storage.object.list',true);
 select pg_temp.assert_true((select count(*)=0 from storage.objects where bucket_id='materiais-alunos'), 'student object listing denied');
-select set_config('storage.operation','storage.object.get_authenticated',true);
+select set_config('storage.operation','object.get_authenticated_info',true);
 select pg_temp.assert_true((select count(*)=1 from storage.objects where bucket_id='materiais-alunos'), 'assigned active student authenticated download allowed');
 
 select pg_temp.assert_true((select count(*)=1 from public.alunos), 'A reads own enrollment');
