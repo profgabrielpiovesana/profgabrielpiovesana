@@ -65,3 +65,26 @@ test('verified fresh recovery event permits password update then signs out', asy
   assert.equal((await auth.setPassword('new-password')).status, 'updated');
   assert.deepEqual(counts(), { updated: 1, signedOut: 1 });
 });
+
+for (const code of ['same_password', 'weak_password']) {
+  test(`${code} returns a stable result and permits retry without a new recovery link`, async () => {
+    const { client, counts } = fixture();
+    client.auth.updateUser = async () => ({ error: { code, message: 'private server detail' } });
+    const auth = createAuthController({ client });
+    await auth.authorizePasswordChange({ evidence: true, event: 'PASSWORD_RECOVERY', session: { user: { id: 'u' } }, kind: 'recovery' });
+    assert.deepEqual(await auth.setPassword('rejected-password'), { status: code });
+    assert.equal(counts().signedOut, 0);
+    client.auth.updateUser = async () => ({ error: null });
+    assert.deepEqual(await auth.setPassword('another-password'), { status: 'updated' });
+    assert.equal(counts().signedOut, 1);
+    assert.deepEqual(await auth.setPassword('after-success'), { status: 'unauthorized' });
+  });
+}
+
+test('unknown password error does not expose server details', async () => {
+  const { client } = fixture();
+  client.auth.updateUser = async () => ({ error: { code: 'unknown_code', message: 'private server detail' } });
+  const auth = createAuthController({ client });
+  await auth.authorizePasswordChange({ evidence: true, event: 'PASSWORD_RECOVERY', session: { user: { id: 'u' } }, kind: 'recovery' });
+  assert.deepEqual(await auth.setPassword('password'), { status: 'error' });
+});

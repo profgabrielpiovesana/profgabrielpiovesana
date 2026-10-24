@@ -41,7 +41,14 @@ if (!evidence) {
         form.hidden = true;
         subscription.unsubscribe();
         location.replace(new URL('entrar.html?senha=atualizada', location.href).href);
-      } else { tell('Não foi possível salvar a senha. Peça um novo link ou tente novamente.'); button.disabled = false; }
+      } else {
+        const messages = {
+          same_password: 'Escolha uma senha diferente da atual e tente novamente.',
+          weak_password: 'Escolha uma senha mais forte e tente novamente.',
+        };
+        tell(messages[result.status] ?? 'Não foi possível salvar a senha. Peça um novo link ou tente novamente.');
+        button.disabled = false;
+      }
     });
     setTimeout(() => {
       if (!handled) { history.replaceState(null, '', location.pathname); tell('Este link expirou ou não pôde ser validado. Peça outro link.'); }

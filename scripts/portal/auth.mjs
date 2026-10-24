@@ -44,7 +44,7 @@ export function createAuthController({ client, getAccess, callbackUrl } = {}) {
       if (!passwordAuthorized) return { status: 'unauthorized' };
       try {
         const { error } = await client.auth.updateUser({ password });
-        if (error) return { status: 'error' };
+        if (error) return { status: ['same_password', 'weak_password'].includes(error.code) ? error.code : 'error' };
       } catch { return { status: 'error' }; }
       passwordAuthorized = false;
       try { await client.auth.signOut(); } catch { /* the password update already succeeded */ }
