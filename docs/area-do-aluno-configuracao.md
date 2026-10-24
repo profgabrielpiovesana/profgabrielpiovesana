@@ -51,7 +51,7 @@ O teste SQL passou no projeto isolado em 2026-10-23; isso prova consultas e grav
 
 ## Contratos da revisão final
 
-`listar-alunos` inclui `invitationStatus: "pending" | "confirmed"`, derivado no servidor de Auth. Os únicos outros campos são `user_id`, `nome`, `email`, `ativo`. Confirmação e ativação são estados independentes; reenviar convite não reativa matrícula. Falhas/inconsistências de Auth fazem a listagem falhar, sem assumir confirmação. O painel oferece reenvio apenas para convite pendente.
+`listar-alunos` inclui `invitationStatus: "pending" | "confirmed"`, derivado no servidor de Auth. Os únicos outros campos são `user_id`, `nome`, `email`, `ativo`. Confirmação e ativação são estados independentes; reenviar convite não reativa matrícula. A confirmação é consultada pelo `user_id` imutável; mudança de e-mail em Auth não bloqueia a listagem nem altera a matrícula. Falha na consulta ou conta ausente faz a listagem falhar, sem assumir confirmação. O painel oferece reenvio apenas para convite pendente.
 
 O preflight da Edge Function permite explicitamente `authorization, apikey, content-type, x-client-info`, incluindo o cabeçalho enviado pelo SDK fixado em 2.75.0. O teste local usa o bundle real com fetch simulado, sem acessar serviços.
 

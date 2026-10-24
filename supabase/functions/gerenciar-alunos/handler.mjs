@@ -29,7 +29,7 @@ export function createHandler({ auth, db, allowedOrigins }) {
         const alunos = [];
         for (const student of await db.listStudents()) {
           const user = await auth.getUserById(student.user_id);
-          if (!user || user.email?.toLowerCase() !== student.email.toLowerCase()) {
+          if (!user) {
             return json(502, { error: 'conta_inconsistente' }, cors);
           }
           alunos.push({ ...publicStudent(student), invitationStatus: user.email_confirmed_at || user.confirmed_at ? 'confirmed' : 'pending' });

@@ -142,3 +142,15 @@ test('CORS preflight permits the actual bundled SDK functions.invoke headers', a
   const allowed = preflight.headers.get('Access-Control-Allow-Headers').split(/,\s*/);
   for (const header of sent.keys()) assert.ok(allowed.includes(header), `Missing CORS header: ${header}`);
 });
+
+test('listing uses immutable user id when Auth email changes and preserves enrollment', async () => {
+  const student = { user_id: oldId, nome: 'Ana', email: 'old@example.com', ativo: false };
+  const f = fixture({ students: [student], users: [{ id: oldId, email: 'new@example.com', email_confirmed_at: '2026-10-24' }] });
+  const response = await f.request('listar-alunos');
+  assert.equal(response.status, 200);
+  assert.deepEqual((await response.json()).alunos, [{ ...student, invitationStatus: 'confirmed' }]);
+  assert.equal(student.email, 'old@example.com');
+  assert.equal(student.ativo, false);
+  assert.equal((await f.request('reenviar-convite', { user_id: oldId })).status, 409);
+  assert.ok(!f.calls.includes('invite'));
+});
