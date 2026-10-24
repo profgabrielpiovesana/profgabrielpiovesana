@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2.79.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.75.0';
 import { createHandler } from './handler.mjs';
 
 const url = Deno.env.get('SUPABASE_URL');
@@ -10,7 +10,9 @@ if (!url || !publicKey || !secretKey || !origin || !redirectTo) throw Error('Mis
 const site = new URL(origin);
 const callback = new URL(redirectTo);
 if (site.protocol !== 'https:' || site.pathname !== '/' || callback.origin !== site.origin ||
-    !callback.pathname.startsWith('/profgabrielpiovesana/')) throw Error('Invalid portal origin or callback');
+    callback.pathname !== '/profgabrielpiovesana/conta.html' || callback.search || callback.hash) {
+  throw Error('Invalid portal origin or callback');
+}
 
 const options = { auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false } };
 const publicClient = createClient(url, publicKey, options);

@@ -187,6 +187,33 @@ test('real RLS and Storage revocation using the same JWT', async () => {
       await cleanup('professor', () => admin(`/rest/v1/professores?user_id=eq.${id}`, 'DELETE'));
       await cleanup('auth user', () => admin(`/auth/v1/admin/users/${id}`, 'DELETE'));
     }
+    // Read back only the identifiers created by this run; a successful DELETE can affect zero rows.
+    async function expectEmpty(label, route) {
+      try {
+        const result = await admin(route);
+        if (result.status !== 200 || result.json().length !== 0) cleanupErrors.push(`${label}: cleanup readback failed (HTTP ${result.status})`);
+      } catch (error) { cleanupErrors.push(`${label}: ${error.message}`); }
+    }
+    for (const id of users) {
+      await expectEmpty('student', `/rest/v1/alunos?select=user_id&user_id=eq.${id}`);
+      await expectEmpty('professor', `/rest/v1/professores?select=user_id&user_id=eq.${id}`);
+      try {
+        const result = await admin(`/auth/v1/admin/users/${id}`);
+        if (result.status !== 404) cleanupErrors.push(`auth user: cleanup readback HTTP ${result.status}`);
+      } catch (error) { cleanupErrors.push(`auth user: ${error.message}`); }
+    }
+    for (const objectPath of [scratchPath, path, rejectedPath]) {
+      await expectEmpty('material', `/rest/v1/materiais_privados?select=id&object_path=eq.${objectPath}`);
+      try {
+        const result = await admin('/storage/v1/object/list/materiais-alunos', 'POST', { prefix: '', search: objectPath, limit: 100 });
+        if (result.status !== 200 || result.json().some(item => item.name === objectPath)) {
+          cleanupErrors.push(`PDF ${objectPath}: cleanup readback failed (HTTP ${result.status})`);
+        }
+      } catch (error) { cleanupErrors.push(`PDF ${objectPath}: ${error.message}`); }
+    }
+    for (const id of [materialId, scratchMaterialId].filter(Boolean)) {
+      await expectEmpty('assignment', `/rest/v1/acessos_materiais?select=material_id&material_id=eq.${id}`);
+    }
     assert.deepEqual(cleanupErrors, [], 'Synthetic fixture cleanup failed');
   }
 });
