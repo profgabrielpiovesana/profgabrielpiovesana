@@ -1,13 +1,118 @@
 import { getClient } from './client.mjs';
+import { validateStudent, validateMaterial, validatePdf } from './rules.mjs';
 
 function unwrap(result) {
   if (result.error) throw new Error('Não foi possível consultar o serviço.');
   return result.data;
 }
 
+const teacherOnly = async api => {
+  if ((await api.getAccess()).status !== 'professor') throw new Error('Acesso indisponível.');
+};
+const materialMetadata = (data, extra = {}) => ({
+  titulo: data.title, tipo: data.type, descricao: data.description,
+  data_referencia: data.date, ...extra,
+});
+const mappedMaterial = row => ({
+  id: row.id, title: row.titulo, type: row.tipo, description: row.descricao,
+  date: row.data_referencia, published: row.publicado, objectPath: row.object_path,
+  originalName: row.nome_original,
+  studentIds: (row.acessos_materiais || []).map(a => a.aluno_id),
+});
+
 export function createPortalApi(client) {
   if (!client) throw new Error('Cliente de autenticação ausente.');
   return {
+    async admin(action, fields = {}) {
+      await teacherOnly(this);
+      const { data, error } = await client.functions.invoke('gerenciar-alunos', { body: { action, ...fields } });
+      if (error) {
+        let detail = error.message || 'Serviço indisponível.';
+        try { const body = await error.context?.json(); detail = body?.message || body?.error || detail; } catch { /* response may not contain JSON */ }
+        throw new Error(detail);
+      }
+      return data;
+    },
+    async listStudents() { return (await this.admin('listar-alunos')).alunos; },
+    async inviteStudent(input) {
+      const checked = validateStudent(input);
+      if (!checked.ok) throw new Error(Object.values(checked.errors).join(' '));
+      return (await this.admin('convidar', { nome: checked.data.name, email: checked.data.email })).aluno;
+    },
+    async completeEnrollment(input) {
+      const checked = validateStudent(input);
+      if (!checked.ok) throw new Error(Object.values(checked.errors).join(' '));
+      return (await this.admin('completar-matricula', { nome: checked.data.name, email: checked.data.email })).aluno;
+    },
+    async resendInvite(id) { return (await this.admin('reenviar-convite', { user_id: id })).aluno; },
+    async setStudentActive(id, active) { return (await this.admin('definir-ativo', { user_id: id, ativo: active })).aluno; },
+    async listTeacherMaterials() {
+      await teacherOnly(this);
+      const rows = unwrap(await client.from('materiais_privados')
+        .select('id,titulo,tipo,descricao,data_referencia,publicado,object_path,nome_original,acessos_materiais(aluno_id)'));
+      return rows.map(mappedMaterial).sort((a, b) => b.date.localeCompare(a.date));
+    },
+    async getTeacherMaterial(id) {
+      await teacherOnly(this);
+      const row = unwrap(await client.from('materiais_privados')
+        .select('id,titulo,tipo,descricao,data_referencia,publicado,object_path,nome_original,acessos_materiais(aluno_id)')
+        .eq('id', id).maybeSingle());
+      if (!row) throw new Error('Material indisponível.');
+      return mappedMaterial(row);
+    },
+    async publishMaterial({ metadata, file, studentIds }) {
+      await teacherOnly(this);
+      const checked = validateMaterial({ ...metadata, studentIds });
+      if (!checked.ok) throw new Error(Object.values(checked.errors).join(' '));
+      const validFile = await validatePdf(file);
+      if (!validFile.ok) throw new Error(Object.values(validFile.errors).join(' '));
+      const path = `${crypto.randomUUID()}.pdf`;
+      const bucket = client.storage.from('materiais-alunos');
+      try {
+        const upload = await bucket.upload(path, file, { contentType: 'application/pdf', upsert: false });
+        if (upload.error) throw upload.error;
+        const { data, error } = await client.rpc('save_material', {
+          p_id: null,
+          p_metadata: materialMetadata(checked.data, { object_path: path, nome_original: file.name, publicado: true }),
+          p_student_ids: checked.data.studentIds,
+        });
+        if (error) throw error;
+        return data;
+      } catch (cause) {
+        // A network error can hide a committed RPC. Never delete its object without readback.
+        let safeToRemove = false;
+        try {
+          const record = unwrap(await client.from('materiais_privados').select('id').eq('object_path', path).maybeSingle());
+          safeToRemove = !record;
+        } catch { /* uncertain server state: preserve object */ }
+        if (safeToRemove) {
+          try {
+            const { error } = await bucket.remove([path]);
+            if (error) throw error;
+          } catch (cleanupError) { throw new Error(`Falha ao salvar o material: ${cause.message}. A limpeza do arquivo também falhou: ${cleanupError.message}`, { cause }); }
+        }
+        throw new Error(`Falha ao salvar o material: ${cause.message}${safeToRemove ? '' : '. O estado do arquivo requer conferência pelo professor'}`, { cause });
+      }
+    },
+    async updateMaterial(id, { metadata, studentIds }) {
+      const current = await this.getTeacherMaterial(id);
+      const checked = validateMaterial({ ...metadata, studentIds });
+      if (!checked.ok) throw new Error(Object.values(checked.errors).join(' '));
+      const { data, error } = await client.rpc('save_material', {
+        p_id: id, p_metadata: materialMetadata(checked.data, { publicado: current.published }),
+        p_student_ids: checked.data.studentIds,
+      });
+      if (error) throw new Error('Não foi possível salvar as alterações.', { cause: error });
+      return data;
+    },
+    async setMaterialPublished(id, published) {
+      if (typeof published !== 'boolean') throw new Error('Estado inválido.');
+      await teacherOnly(this);
+      const row = unwrap(await client.from('materiais_privados')
+        .update({ publicado: published }).eq('id', id).select('id').maybeSingle());
+      if (!row) throw new Error('Material indisponível.');
+      return row.id;
+    },
     async getAccess() {
       const { data, error } = await client.auth.getUser();
       if (error || !data?.user) return { status: 'sem-acesso' };

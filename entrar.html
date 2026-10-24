@@ -18,6 +18,17 @@
     <div class="portal-tools"><label for="material-search">Pesquisar por título</label><input id="material-search" type="search" autocomplete="off"><label for="material-type">Tipo</label><select id="material-type"><option value="">Todos</option><option value="aula">Material de aula</option><option value="lista">Lista</option></select></div>
     <p id="material-count" aria-live="polite"></p><ul id="material-list" class="portal-list"></ul><p id="material-empty" class="portal-empty" hidden>Ainda não há materiais liberados para você.</p><p id="filter-empty" class="portal-empty" hidden>Nenhum material corresponde à busca ou ao filtro.</p>
   </section>
-  <section class="portal-panel" id="teacher-view" aria-labelledby="teacher-title" hidden><h2 id="teacher-title">Painel do professor</h2><p>O painel de administração será disponibilizado após a configuração do serviço.</p><button class="btn outline" type="button" data-logout>Sair</button></section>
+  <section class="portal-panel portal-teacher" id="teacher-view" aria-labelledby="teacher-title" hidden>
+    <div class="portal-heading"><div><p class="eyebrow">Área do professor</p><h2 id="teacher-title">Painel do professor</h2></div><button class="btn outline" type="button" data-logout>Sair</button></div>
+    <section aria-labelledby="students-title"><h3 id="students-title">Alunos</h3>
+      <p>Convide um aluno por e-mail. Se o convite foi enviado mas a matrícula não foi salva, use “Completar matrícula” após a confirmação da conta.</p>
+      <form id="student-form"><label for="teacher-student-name">Nome</label><input id="teacher-student-name" name="name" required maxlength="160"><label for="teacher-student-email">E-mail</label><input id="teacher-student-email" name="email" type="email" required><div class="actions"><button class="btn dark" type="submit" data-student-action="invite">Convidar aluno</button><button class="btn outline" type="button" data-student-action="complete">Completar matrícula</button></div></form>
+      <ul id="teacher-students" class="portal-list"></ul><p id="teacher-students-empty" class="portal-empty" hidden>Nenhum aluno matriculado.</p>
+    </section>
+    <section aria-labelledby="teacher-materials-title"><h3 id="teacher-materials-title">Materiais privados</h3>
+      <form id="teacher-material-form"><input id="editing-material-id" type="hidden"><label for="teacher-material-title">Título</label><input id="teacher-material-title" required maxlength="200"><label for="teacher-material-type">Tipo</label><select id="teacher-material-type"><option value="aula">Material de aula</option><option value="lista">Lista</option></select><label for="teacher-material-date">Data de referência</label><input id="teacher-material-date" type="date" required><label for="teacher-material-description">Descrição</label><textarea id="teacher-material-description" maxlength="2000" rows="3"></textarea><label for="teacher-material-file">PDF (até 20 MB)</label><input id="teacher-material-file" type="file" accept="application/pdf,.pdf" required><fieldset id="teacher-recipients"><legend>Destinatários ativos</legend><div id="teacher-recipient-list"></div></fieldset><div class="actions"><button class="btn dark" type="submit">Publicar material</button><button class="btn outline" type="button" id="cancel-material-edit" hidden>Cancelar edição</button></div></form>
+      <ul id="teacher-materials" class="portal-list"></ul><p id="teacher-materials-empty" class="portal-empty" hidden>Nenhum material publicado ou em edição.</p>
+    </section>
+  </section>
   <p id="portal-status" class="portal-status" role="status" aria-live="polite" tabindex="-1"></p>
 </main><script type="module" src="scripts/portal/entry.mjs"></script></body></html>

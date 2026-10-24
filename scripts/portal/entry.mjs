@@ -2,6 +2,7 @@ import { getClient } from './client.mjs';
 import { createPortalApi } from './api.mjs';
 import { createAuthController } from './auth.mjs';
 import { createAlunoController } from './aluno.mjs';
+import { mountProfessorPanel } from './professor.mjs';
 
 const $ = selector => document.querySelector(selector);
 const loginView = $('#login-view');
@@ -21,6 +22,7 @@ try {
   const auth = createAuthController({ client, getAccess: () => api.getAccess(),
     callbackUrl: new URL('conta.html', location.href).href });
   const library = createAlunoController({ api });
+  const teacher = mountProfessorPanel({ root: teacherView, api, message });
   let busy = false;
   const render = () => {
     const list = $('#material-list');
@@ -57,7 +59,7 @@ try {
   };
   const showAccess = async access => {
     library.clear();
-    if (access.status === 'professor') { show('teacher'); message(''); return; }
+    if (access.status === 'professor') { show('teacher'); await teacher.open(); return; }
     if (access.status !== 'aluno') {
       show('login');
       message(access.status === 'inativo' ? 'Seu acesso está desativado. Fale com o professor.' :
@@ -92,7 +94,7 @@ try {
     button.disabled = false; busy = false;
   });
   for (const button of document.querySelectorAll('[data-logout]')) button.addEventListener('click', async () => {
-    library.clear(); await auth.logout(); show('login'); render(); message('Você saiu da conta.');
+    library.clear(); teacher.clear(); await auth.logout(); show('login'); render(); message('Você saiu da conta.');
   });
   $('#material-search').addEventListener('input', render);
   $('#material-type').addEventListener('change', render);
