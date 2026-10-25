@@ -22,12 +22,12 @@ const users = [];
 let materialId;
 let scratchMaterialId;
 
-async function request(route, key, token, method = 'GET', body, contentType = 'application/json') {
-  const headers = { apikey: key, Authorization: `Bearer ${token ?? key}` };
+async function request(route, key, token, method = 'GET', body, contentType = 'application/json', extraHeaders = {}) {
+  const headers = { apikey: key, Authorization: `Bearer ${token ?? key}`, ...extraHeaders };
   if (body !== undefined) headers['Content-Type'] = contentType;
   const response = await fetch(base + route, { method, headers, body: body === undefined ? undefined : contentType === 'application/json' ? JSON.stringify(body) : body });
   const bytes = Buffer.from(await response.arrayBuffer());
-  return { status: response.status, bytes, json: () => JSON.parse(bytes.toString()) };
+  return { status: response.status, headers: response.headers, bytes, json: () => JSON.parse(bytes.toString()) };
 }
 async function admin(route, method = 'GET', body) { return request(route, service, service, method, body); }
 async function createUser(tag) {
@@ -46,8 +46,24 @@ async function table(name, token, query = '') {
   if (token) assert.equal(result.status, 200, `read ${name}: ${result.status}`);
   return result;
 }
-// Smart CDN may serve an identical earlier GET; a unique query forces the origin RLS check.
-async function download(token) { return request(`/storage/v1/object/authenticated/materiais-alunos/${path}?cb=${randomUUID()}`, anon, token); }
+// Keep origin checks for direct Storage; the new POST always reuses URL/body/JWT.
+async function storageDownload(token) { return request(`/storage/v1/object/authenticated/materiais-alunos/${path}?cb=${randomUUID()}`, anon, token); }
+const stableDownloadRoute = '/functions/v1/baixar-material';
+async function download(token, headers = {}) {
+  const response = await request(stableDownloadRoute, anon, token, 'POST', { id: materialId }, 'application/json', headers);
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  assert.equal(response.headers.get('Pragma'), 'no-cache');
+  for (const name of ['origin','authorization']) assert.ok(response.headers.get('Vary')?.toLowerCase().split(/,\s*/).includes(name));
+  return response;
+}
+async function stableDownload(token) { return download(token); }
+async function directStorageDenied(token, label) {
+  for (const route of ['object', 'object/authenticated']) {
+    const url = `/storage/v1/${route}/materiais-alunos/${path}`;
+    denied(await request(url, anon, token), `${label}: ${route} stable direct GET`);
+    denied(await request(`${url}?cb=${randomUUID()}`, anon, token), `${label}: ${route} origin direct GET`);
+  }
+}
 function denied(response, label) { assert.ok(isDeniedResponse(response), `${label}: expected auth denial, got HTTP ${response.status}`); }
 function deniedOrNoop(response, label) { assert.ok([200, 204, 401, 403, 404].includes(response.status), `${label}: unexpected HTTP ${response.status}`); }
 
@@ -119,8 +135,8 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
 
     const upload = await request(`/storage/v1/object/materiais-alunos/${path}`, anon, professor.token, 'POST', pdf, 'application/pdf');
     assert.ok([200, 201].includes(upload.status), `teacher upload: ${upload.status}`);
-    assert.deepEqual((await download(professor.token)).bytes, pdf, 'teacher downloads uploaded PDF');
-    denied(await download(a.token), 'unlinked upload');
+    assert.deepEqual((await storageDownload(professor.token)).bytes, pdf, 'teacher downloads uploaded PDF');
+    denied(await storageDownload(a.token), 'unlinked upload');
     const saved = await request('/rest/v1/rpc/save_material', anon, professor.token, 'POST', {
       p_id: null, p_metadata: { titulo: 'Synthetic PDF', tipo: 'aula', data_referencia: '2026-10-23', object_path: path, nome_original: 'test.pdf', publicado: true }, p_student_ids: [a.id],
     });
@@ -143,9 +159,21 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
       assert.equal((await table('materiais_privados', professor.token, `&id=eq.${materialId}`)).json().length, 1);
       assert.equal((await table('acessos_materiais', professor.token, `&material_id=eq.${materialId}`)).json().length, 1);
     }
+    await directStorageDenied(a.token, 'active assigned student');
+    const listed = await request('/storage/v1/object/list/materiais-alunos', anon, a.token, 'POST', { prefix: '', limit: 100 });
+    if (listed.status === 200) assert.deepEqual(listed.json(), [], 'student cannot list objects');
+    else denied(listed, 'student listing');
     const known = await download(a.token);
     assert.equal(known.status, 200);
     assert.deepEqual(known.bytes, pdf);
+    assert.equal(known.headers.get('Content-Type'), 'application/octet-stream');
+    for (const method of ['GET','HEAD']) {
+      assert.equal((await request(stableDownloadRoute, anon, a.token, method)).status, 405);
+    }
+    for (const headers of [{ Range: 'bytes=0-1' }, { 'If-None-Match': '*' }, { 'If-Modified-Since': new Date().toUTCString() }]) {
+      const response = await download(a.token, headers);
+      assert.equal(response.status, 200); assert.deepEqual(response.bytes, pdf);
+    }
     denied(await request(`/storage/v1/object/sign/materiais-alunos/${path}`, anon, a.token, 'POST', { expiresIn: 60 }), 'assigned active student single signing');
     const batch = await request('/storage/v1/object/sign/materiais-alunos', anon, a.token, 'POST', { paths: [path], expiresIn: 60 });
     // Batch signing can return HTTP 200 with a per-object denial.
@@ -155,7 +183,7 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
       assert.ok(results[0].error, 'batch signing must return an object error');
       assert.ok(!results[0].signedURL && !results[0].signedUrl, 'batch signing must not issue a URL');
     } else denied(batch, 'assigned active student batch signing');
-    assert.equal((await download(a.token)).status, 200, 'signing denial retains authenticated download');
+    assert.equal((await download(a.token)).status, 200, 'signing denial retains authorized endpoint download');
     assert.equal((await table('materiais_privados', b.token)).json().length, 0);
     assert.equal((await table('materiais_privados', outsider.token)).json().length, 0);
     denied(await download(outsider.token), 'authenticated outsider download');
@@ -165,21 +193,39 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
     denied(await download(null), 'visitor download');
     denied(await table('materiais_privados', null), 'visitor metadata');
 
+    const warmdeactivation = await stableDownload(a.token);
+    assert.equal(warmdeactivation.status, 200, 'deactivation: stable URL accessible before revocation');
+    assert.deepEqual(warmdeactivation.bytes, pdf);
     assert.equal((await admin(`/rest/v1/alunos?user_id=eq.${a.id}`, 'PATCH', { ativo: false })).status, 204);
     assert.equal((await table('materiais_privados', a.token)).json().length, 0);
     denied(await download(a.token), 'inactive same-session download');
+    denied(await stableDownload(a.token), 'deactivation: same warmed URL and same JWT');
+    denied(await download(a.token, { Range: 'bytes=0-1', 'If-None-Match': '*', 'If-Modified-Since': new Date().toUTCString() }), 'deactivation: conditional/range cannot bypass revocation');
+    await directStorageDenied(a.token, 'deactivation');
     assert.equal((await admin(`/rest/v1/alunos?user_id=eq.${a.id}`, 'PATCH', { ativo: true })).status, 204);
     assert.equal((await download(a.token)).status, 200);
 
+    const warmunassignment = await stableDownload(a.token);
+    assert.equal(warmunassignment.status, 200, 'unassignment: stable URL accessible before revocation');
+    assert.deepEqual(warmunassignment.bytes, pdf);
     assert.equal((await admin(`/rest/v1/acessos_materiais?material_id=eq.${materialId}&aluno_id=eq.${a.id}`, 'DELETE')).status, 204);
     assert.equal((await table('materiais_privados', a.token)).json().length, 0);
     denied(await download(a.token), 'unassigned download');
+    denied(await stableDownload(a.token), 'unassignment: same warmed URL and same JWT');
+    denied(await download(a.token, { Range: 'bytes=0-1', 'If-None-Match': '*', 'If-Modified-Since': new Date().toUTCString() }), 'unassignment: conditional/range cannot bypass revocation');
+    await directStorageDenied(a.token, 'unassignment');
     assert.equal((await admin('/rest/v1/acessos_materiais', 'POST', [{ material_id: materialId, aluno_id: a.id }])).status, 201);
     assert.equal((await download(a.token)).status, 200);
 
+    const warmunpublication = await stableDownload(a.token);
+    assert.equal(warmunpublication.status, 200, 'unpublication: stable URL accessible before revocation');
+    assert.deepEqual(warmunpublication.bytes, pdf);
     assert.equal((await admin(`/rest/v1/materiais_privados?id=eq.${materialId}`, 'PATCH', { publicado: false })).status, 204);
     assert.equal((await table('materiais_privados', a.token)).json().length, 0);
     denied(await download(a.token), 'unpublished download');
+    denied(await stableDownload(a.token), 'unpublication: same warmed URL and same JWT');
+    denied(await download(a.token, { Range: 'bytes=0-1', 'If-None-Match': '*', 'If-Modified-Since': new Date().toUTCString() }), 'unpublication: conditional/range cannot bypass revocation');
+    await directStorageDenied(a.token, 'unpublication');
   }, async () => {
     const cleanupErrors = [];
     async function cleanup(label, work, allowMissingObject = false) {

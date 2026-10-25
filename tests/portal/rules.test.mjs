@@ -94,3 +94,10 @@ test('busca sem acentos e ordena por data e criação decrescentes', () => {
   assert.deepEqual(filterMaterials(items, {}).map(item => item.id), ['newer', 'new', 'old']);
   assert.deepEqual(items.map(item => item.id), ['old', 'newer', 'new']);
 });
+
+test('normalized student name boundaries match server 160/161', () => {
+  for (const [length, ok] of [[160,true],[161,false]]) assert.equal(validateStudent({ name: ` ${'n'.repeat(length)} `, email: 'a@b.c' }).ok, ok);
+});
+test('normalized student email boundaries match server 254/255', () => {
+  for (const [length, ok] of [[254,true],[255,false]]) assert.equal(validateStudent({ name: 'Ana', email: ` ${'a'.repeat(length-4)}@b.c ` }).ok, ok);
+});

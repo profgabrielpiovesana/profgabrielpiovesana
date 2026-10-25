@@ -20,8 +20,8 @@ export function validateStudent({ name, email } = {}) {
     email: normalizeText(email).toLowerCase(),
   };
   const errors = {};
-  if (!data.name) errors.name = 'Informe o nome do aluno.';
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(data.email)) errors.email = 'Informe um e-mail válido.';
+  if (!data.name || data.name.length > 160) errors.name = 'Informe o nome do aluno.';
+  if (data.email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(data.email)) errors.email = 'Informe um e-mail válido.';
   return Object.keys(errors).length ? failure(errors) : success(data);
 }
 

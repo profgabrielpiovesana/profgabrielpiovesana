@@ -60,3 +60,31 @@ Registro histórico dos limites de verificação antes da ativação e publicaç
 O preflight da Edge Function permite explicitamente `authorization, apikey, content-type, x-client-info`, incluindo o cabeçalho enviado pelo SDK fixado em 2.75.0. O teste local usa o bundle real com fetch simulado, sem acessar serviços.
 
 O teste HTTP isolado exige que um aluno ativo e destinatário baixe o PDF e seja impedido de criar URLs assinadas individuais e em lote. As simulações SQL de `storage.operation` não substituem essa aceitação HTTP. Fonte das operações: https://github.com/supabase/storage/blob/master/src/http/routes/operations.ts; helpers: https://supabase.com/docs/guides/storage/schema/helper-functions.
+
+## Correções locais da auditoria — 2026-10-24
+
+Gabriel aprovou A-1, A-2, A-3, A-6 e a ampliação A-4. O diff local corrige edição concorrente, tratamento de falha na saída, preservação do formulário durante ações independentes e limites de nome/e-mail. Não houve publicação, deploy ou aplicação remota nesta etapa.
+
+A migração incremental `supabase/migrations/202610240004_preserve_material_publication.sql` deve ser aplicada após as migrações anteriores, incluindo `202610240003_service_role_grants.sql`. Ela substitui `save_material` mantendo assinatura, autorização, bloqueio de linha e transação de metadados/destinatários. Edição ignora `publicado`, inclusive o valor obsoleto de clientes antigos; criação exige publicação inicial booleana. Instalações existentes precisam desta migração; aplicar e verificar a 004 antes de publicar o cliente atualizado. Atualizar apenas o JavaScript não basta.
+
+No projeto isolado, aplicar as migrações na ordem e executar `psql -v ON_ERROR_STOP=1 -f supabase/tests/portal_access.sql` (ou o arquivo completo no SQL Editor). Os novos casos verificam retirada seguida de payload obsoleto e atualização sem `publicado`. Esses casos SQL foram preparados, mas não executados nesta etapa: não há PostgreSQL local e não foi autorizado teste remoto.
+
+O teste `tests/live/portal-access.test.mjs` mantém URLs únicas para testar a origem e acrescenta a mesma URL estável, aquecida com sucesso e os bytes esperados antes de cada revogação. Depois de desativar, desassociar ou retirar publicação, exige negação com a mesma URL e o mesmo JWT. Não aceita HTTP 200 após revogação nem troca a URL para esconder cache. Execute pelo procedimento isolado acima somente com autorização. O comportamento real do CDN/cache continua sem validação nesta etapa; os testes locais não certificam revogação HTTP imediata.
+
+Atualização posterior em 2026-10-24: migração 004 aplicada manualmente pelo SQL Editor no projeto existente, corpo confirmado por hash e permissões relidas; contagens de dados preservadas. Os testes SQL/HTTP continuam pendentes em ambiente separado, pois o projeto existente já tem uma matrícula e duas contas. Frontend ainda não publicado.
+
+## Transição aprovada para entrega por Edge Function — 2026-10-24
+
+Esta seção sucede os registros históricos acima. O coordenador confirmou no projeto descartável `ltudhfyhcigmkexrgect` que a URL Storage aquecida continuou respondendo 200 após desativação, embora a origem negasse. Repetiu com upload `max-age=0` e observou HIT com `private, max-age=0, must-revalidate`. Essa evidência foi recebida pelo implementador; ele não executou acesso remoto nesta etapa. Gabriel aprovou substituir o download direto do aluno por autorização em cada pedido à função `baixar-material`.
+
+O novo contrato é POST JSON `{ "id": "UUID-do-material" }`. A função valida Auth, lê `object_path` com o JWT do solicitante sob RLS e somente então baixa administrativamente do bucket fixo. Não aceita caminho, URL, bucket ou identidade no payload e não encaminha headers/query do solicitante ao Storage administrativo. Respostas são `private, no-store`, `Pragma: no-cache` e `Vary: Origin, Authorization`, com CORS restrito. Os bytes saem como `application/octet-stream` para o SDK 2.75.0 retornar Blob; o cliente os identifica como PDF para abrir/baixar. GET e HEAD não entregam PDF.
+
+A migração incremental `202610240005_storage_server_downloads.sql`, após 001–004, restringe o SELECT direto de Storage a professor. Aluno ativo destinatário também fica impedido de baixar, listar e assinar diretamente; metadados e autorização de materiais mantêm RLS. O teste SQL passa a exigir negação direta para aluno e controle positivo de professor. O teste HTTP mantém as duas rotas diretas, URLs inéditas para origem, controles de metadados/assinatura/listagem e cleanup; entrega e revogação usam o mesmo POST, URL, corpo e JWT, incluindo tentativas Range/condicionais.
+
+Sequência a cargo do coordenador, após revisão independente: implantar `baixar-material` apenas no projeto descartável, reutilizando `PORTAL_ALLOWED_ORIGIN` HTTPS e as opções de cliente servidor existentes; aplicar 005; executar o SQL completo e a suíte HTTP isolada; confirmar ausência das fixtures depois. A configuração da função usa as variáveis servidor já existentes, sem credencial nova no frontend. A execução real da nova função/policy e a validação de CDN permanecem pendentes neste diff; testes locais não as substituem.
+
+Antes de qualquer transição de produção, reler tabelas e objetos: o registro anterior era zero materiais/objetos. Se houver arquivos ou URLs legados, interromper o rollout automático e tratar invalidação/comprovar negação das URLs antigas. A nova policy não certifica remoção de bytes já em cache; arquivos já recebidos não podem ser recolhidos. Esta etapa não publica frontend nem altera produção.
+
+Aceitação posterior: 001-005 e ambas Edge Functions implantadas somente em portal-auditoria-testes (ltudhfyhcigmkexrgect). Suíte SQL completa e HTTP real passaram; mesmo endpoint/JWT negado após as três formas de revogação, aluno sem Storage direto, limpeza relida com zero fixtures. 99 testes locais passaram. .env.example aponta a este ambiente descartável; arquivo temporário com credenciais apagado. Produção permanece com 004 e frontend anterior, aguardando rollout autorizado da entrega nova.
+
+Rollout autorizado: função baixar-material e policy005 aplicadas em produção após releitura confirmar zero PDFs; 1 matrícula,1 professor e2 contas preservados. Cliente atualizado deve acompanhar este rollout. O projeto de testes e suas chaves não substituem dados/portal-config.json de produção.

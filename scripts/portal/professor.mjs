@@ -36,9 +36,12 @@ export function mountProfessorPanel({ root, api, message }) {
     $('#teacher-material-file').required = true;
     $('#teacher-material-file').disabled = false;
     $('#cancel-material-edit').hidden = true;
+    for (const box of root.querySelectorAll('input[name="recipient"]')) box.checked = false;
     materialForm.querySelector('[type="submit"]').textContent = 'Publicar material';
   };
   const render = () => {
+    const selected = new Set([...root.querySelectorAll('input[name="recipient"]:checked')].map(box => box.value));
+    const removed = [...selected].some(id => !controller.students.some(student => student.user_id === id && student.ativo));
     const studentList = $('#teacher-students'); studentList.replaceChildren();
     $('#teacher-students-empty').hidden = controller.students.length > 0;
     for (const student of controller.students) {
@@ -57,8 +60,7 @@ export function mountProfessorPanel({ root, api, message }) {
     for (const student of controller.students.filter(item => item.ativo)) {
       const label = document.createElement('label');
       const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.name = 'recipient'; checkbox.value = student.user_id;
-      const editing = controller.materials.find(item => item.id === $('#editing-material-id').value);
-      checkbox.checked = !!editing?.studentIds.includes(student.user_id);
+      checkbox.checked = selected.has(student.user_id);
       label.append(checkbox, document.createTextNode(`${student.nome} (${student.email})`)); recipients.append(label);
     }
     const materials = $('#teacher-materials'); materials.replaceChildren();
@@ -89,8 +91,9 @@ export function mountProfessorPanel({ root, api, message }) {
       toggle.addEventListener('click', () => run(async () => { await api.setMaterialPublished(material.id, !material.published); return material.published ? 'Material retirado.' : 'Material republicado.'; }));
       li.append(title, info, edit, toggle); materials.append(li);
     }
+    return removed;
   };
-  const run = async action => {
+  const run = async (action, resetMaterial = false) => {
     if (busy) return;
     busy = true; const turn = generation;
     root.setAttribute('aria-busy', 'true');
@@ -102,7 +105,9 @@ export function mountProfessorPanel({ root, api, message }) {
       const refreshed = await controller.refresh();
       if (turn !== generation) return;
       if (refreshed.status !== 'ok') throw refreshed.error;
-      clearEdit(); render(); announce(success);
+      if (resetMaterial) clearEdit();
+      const removed = render();
+      announce(removed ? `${success} Um destinatário desativado foi removido da seleção.` : success);
     } catch (error) { if (turn === generation) announce(error?.message || 'Não foi possível concluir. Tente novamente.'); }
     finally {
       if (turn === generation) {
@@ -128,7 +133,7 @@ export function mountProfessorPanel({ root, api, message }) {
       if (id) { await api.updateMaterial(id, { metadata, studentIds }); return 'Alterações salvas.'; }
       await api.publishMaterial({ metadata, studentIds, file: $('#teacher-material-file').files[0] });
       return 'Material publicado.';
-    });
+    }, true);
   });
   $('#cancel-material-edit').addEventListener('click', () => { clearEdit(); render(); });
   return {

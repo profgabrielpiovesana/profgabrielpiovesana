@@ -52,7 +52,7 @@ export function createAuthController({ client, getAccess, callbackUrl } = {}) {
     },
     async logout() {
       passwordAuthorized = false;
-      try { await client.auth.signOut(); return { status: 'signed-out' }; }
+      try { const { error } = await client.auth.signOut(); return { status: error ? 'error' : 'signed-out' }; }
       catch { return { status: 'error' }; }
     },
   };

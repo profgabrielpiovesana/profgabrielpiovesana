@@ -24,6 +24,7 @@ try {
   const library = createAlunoController({ api });
   const teacher = mountProfessorPanel({ root: teacherView, api, message });
   let busy = false;
+  let authBusy = false;
   const render = () => {
     const list = $('#material-list');
     list.replaceChildren();
@@ -74,27 +75,34 @@ try {
     show('student'); render(); message('');
   };
   $('#login-form').addEventListener('submit', async event => {
-    event.preventDefault(); if (busy) return;
+    event.preventDefault(); if (busy || authBusy) return;
+    authBusy = true;
     busy = true; const button = $('#login-form button'); button.disabled = true; message('Verificando acesso...');
     const result = await auth.login($('#email').value.trim(), $('#password').value);
     $('#password').value = '';
     if (result.status === 'invalid') message('E-mail ou senha inválidos.');
     else await showAccess(result);
-    button.disabled = false; busy = false;
+    button.disabled = false; busy = false; authBusy = false;
   });
   $('#recover-toggle').addEventListener('click', () => {
     $('#recover-form').hidden = !$('#recover-form').hidden;
     if (!$('#recover-form').hidden) $('#recover-email').focus();
   });
   $('#recover-form').addEventListener('submit', async event => {
-    event.preventDefault(); if (busy) return;
+    event.preventDefault(); if (busy || authBusy) return;
     busy = true; const button = $('#recover-form button'); button.disabled = true;
     const result = await auth.recover($('#recover-email').value.trim());
     message(result.status === 'sent' ? 'Se esta conta existir, enviaremos um link de recuperação.' : 'Não foi possível enviar o link agora. Tente novamente.');
     button.disabled = false; busy = false;
   });
   for (const button of document.querySelectorAll('[data-logout]')) button.addEventListener('click', async () => {
-    library.clear(); teacher.clear(); await auth.logout(); show('login'); render(); message('Você saiu da conta.');
+    if (authBusy) return;
+    authBusy = true; $('#login-form button').disabled = true;
+    library.clear(); teacher.clear(); show('login'); render();
+    const result = await auth.logout();
+    authBusy = false; $('#login-form button').disabled = false;
+    $('#logout-retry').hidden = result.status === 'signed-out';
+    message(result.status === 'signed-out' ? 'Você saiu da conta.' : 'Não foi possível sair. Tente sair novamente.');
   });
   $('#material-search').addEventListener('input', render);
   $('#material-type').addEventListener('change', render);

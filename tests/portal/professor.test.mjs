@@ -128,3 +128,11 @@ test('controller failure leaves no success state and releases busy flag', async 
   assert.equal(ctl.busy, false);
   assert.deepEqual(ctl.students, []);
 });
+
+test('metadata edit never sends a stale publication state after concurrent withdrawal', async () => {
+  const { api, calls } = fixture();
+  const listStudents = api.listStudents.bind(api);
+  api.listStudents = async () => { await api.setMaterialPublished('material-id', false); return listStudents(); };
+  await api.updateMaterial('material-id', { metadata, studentIds: metadata.studentIds });
+  assert.equal(Object.hasOwn(calls.find(c => c[0] === 'rpc')[2].p_metadata, 'publicado'), false);
+});

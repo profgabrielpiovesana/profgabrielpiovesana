@@ -112,7 +112,7 @@ export function createPortalApi(client) {
       const checked = validateMaterial({ ...metadata, studentIds });
       if (!checked.ok) throw new Error(Object.values(checked.errors).join(' '));
       const { data, error } = await client.rpc('save_material', {
-        p_id: id, p_metadata: materialMetadata(checked.data, { publicado: current.published }),
+        p_id: id, p_metadata: materialMetadata(checked.data),
         p_student_ids: checked.data.studentIds,
       });
       if (error) throw new Error('Não foi possível salvar as alterações.', { cause: error });
@@ -148,14 +148,9 @@ export function createPortalApi(client) {
     async downloadMaterial(id) {
       const access = await this.getAccess();
       if (access.status !== 'aluno') throw new Error('Acesso indisponível.');
-      const row = unwrap(await client.from('acessos_materiais')
-        .select('material:materiais_privados(object_path)')
-        .eq('material_id', id).maybeSingle());
-      if (!row?.material?.object_path) throw new Error('Material indisponível.');
-      const blob = unwrap(await client.storage.from('materiais-alunos')
-        .download(row.material.object_path));
-      if (!(blob instanceof Blob)) throw new Error('Material indisponível.');
-      return blob;
+      const { data, error } = await client.functions.invoke('baixar-material', { body: { id } });
+      if (error || !(data instanceof Blob)) throw new Error('Material indisponível.');
+      return new Blob([data], { type: 'application/pdf' });
     },
   };
 }

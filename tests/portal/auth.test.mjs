@@ -88,3 +88,12 @@ test('unknown password error does not expose server details', async () => {
   await auth.authorizePasswordChange({ evidence: true, event: 'PASSWORD_RECOVERY', session: { user: { id: 'u' } }, kind: 'recovery' });
   assert.deepEqual(await auth.setPassword('password'), { status: 'error' });
 });
+
+for (const throws of [false, true]) test(`logout reports SDK failure (throws=${throws}) and allows retry`, async () => {
+  const { client } = fixture();
+  client.auth.signOut = async () => { if (throws) throw Error('private detail'); return { error: Error('private detail') }; };
+  const auth = createAuthController({ client });
+  assert.deepEqual(await auth.logout(), { status: 'error' });
+  client.auth.signOut = async () => ({ error: null });
+  assert.deepEqual(await auth.logout(), { status: 'signed-out' });
+});

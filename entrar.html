@@ -6,7 +6,8 @@
 <header><nav class="container" aria-label="Navegação principal"><a class="brand" href="index.html"><img src="imagem/C%C3%B3pia%20de%20Logo%20ig.png" alt=""><span>Prof. Gabriel Piovesana</span></a><a href="index.html#materiais">Materiais gratuitos</a></nav></header>
 <main id="conteudo" class="portal-layout container">
   <div class="portal-intro"><p class="eyebrow">Acompanhamento particular</p><h1>Seu espaço de estudo</h1><p class="lead">Acesse os materiais e as listas que foram liberados para você.</p></div>
-  <section class="portal-panel" id="login-view" aria-labelledby="login-title"><h2 id="login-title">Entrar</h2>
+  <section class="portal-panel" id="login-view" aria-labelledby="login-title"><button id="logout-retry" type="button" data-logout hidden>Tentar sair novamente</button>
+<h2 id="login-title">Entrar</h2>
     <form id="login-form"><label for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="username" required>
       <label for="password">Senha</label><input id="password" name="password" type="password" autocomplete="current-password" required>
       <button class="btn dark" type="submit">Entrar na minha biblioteca</button></form>
@@ -22,7 +23,7 @@
     <div class="portal-heading"><div><p class="eyebrow">Área do professor</p><h2 id="teacher-title">Painel do professor</h2></div><button class="btn outline" type="button" data-logout>Sair</button></div>
     <section aria-labelledby="students-title"><h3 id="students-title">Alunos</h3>
       <p>Convide um aluno por e-mail. Se o convite foi enviado mas a matrícula não foi salva, use “Completar matrícula” após a confirmação da conta.</p>
-      <form id="student-form"><label for="teacher-student-name">Nome</label><input id="teacher-student-name" name="name" required maxlength="160"><label for="teacher-student-email">E-mail</label><input id="teacher-student-email" name="email" type="email" required><div class="actions"><button class="btn dark" type="submit" data-student-action="invite">Convidar aluno</button><button class="btn outline" type="button" data-student-action="complete">Completar matrícula</button></div></form>
+      <form id="student-form"><label for="teacher-student-name">Nome</label><input id="teacher-student-name" name="name" required maxlength="160"><label for="teacher-student-email">E-mail</label><input id="teacher-student-email" maxlength="254" name="email" type="email" required><div class="actions"><button class="btn dark" type="submit" data-student-action="invite">Convidar aluno</button><button class="btn outline" type="button" data-student-action="complete">Completar matrícula</button></div></form>
       <ul id="teacher-students" class="portal-list"></ul><p id="teacher-students-empty" class="portal-empty" hidden>Nenhum aluno matriculado.</p>
     </section>
     <section aria-labelledby="teacher-materials-title"><h3 id="teacher-materials-title">Materiais privados</h3>
