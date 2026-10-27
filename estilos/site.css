@@ -27,3 +27,44 @@ section[id],#aulas{scroll-margin-top:96px}
 @media(max-width:900px){.hero-grid,.about{grid-template-columns:1fr}.hero-grid{min-height:auto}.copy{text-align:center}.lead{margin-inline:auto}.actions,.stats{justify-content:center}.portrait{width:min(520px,100%);margin:auto}.grid{grid-template-columns:repeat(2,1fr)}.link-grid{grid-template-columns:1fr}}
 @media(max-width:680px){.container{width:92vw}.navlinks>a:not(.btn){display:none}.navlinks>a.student-nav{display:inline}.navlinks>.btn{display:none}.brand span{display:none}section{padding:4rem 0}.tools{grid-template-columns:1fr}.grid,.lesson-grid{grid-template-columns:1fr}.cta-inner,.footer{align-items:flex-start;flex-direction:column}.footer-links{flex-wrap:wrap}.stats{gap:1rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+
+/* A escolha de tema é compartilhada entre as páginas. */
+.theme-toggle{flex-shrink:0;min-height:44px;padding:.45rem .7rem;border:1px solid #a8bac8;border-radius:8px;background:transparent;color:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.theme-toggle:hover{background:#edf7ff}
+.theme-toggle span{font-size:1rem}
+html[data-theme="light"] .materials{background:#fff;color:#0f172a}
+html[data-theme="light"] .materials .head p,html[data-theme="light"] .count,html[data-theme="light"] .empty{color:#526174}
+html[data-theme="light"] .search,html[data-theme="light"] .filter{background:#f5f8fc;border-color:#b6c6d5;color:#173148}
+html[data-theme="light"] .search::placeholder{color:#526174}
+html[data-theme="light"] .filter[aria-pressed=true]{background:#176ca6;color:#fff;border-color:#176ca6}
+html[data-theme="light"] .group{background:#fff;border-color:#cbdce8}
+html[data-theme="light"] .group summary{background:#edf5fa;color:#173148}
+html[data-theme="light"] .group .breadcrumb{color:#526174}
+html[data-theme="light"] .grid{background:#dbe4ef}
+html[data-theme="light"] .card{background:#fff;color:#0f172a}
+html[data-theme="light"] .card:hover{background:#edf7ff}
+html[data-theme="light"] .card span,html[data-theme="light"] .group summary .chev{color:#176ca6}
+html[data-theme="light"] .empty{border-color:#b6c6d5}
+html[data-theme="dark"]{color-scheme:dark;--paper:#0f172a;--muted:#c0cfdf;--line:#405169}
+html[data-theme="dark"] body{background:#0f172a;color:#edf6fa}
+html[data-theme="dark"] header{background:#131d30f5}
+html[data-theme="dark"] .navlinks>a:not(.btn){color:#dce7f4}
+html[data-theme="dark"] .navlinks>a:hover,html[data-theme="dark"] .eyebrow,html[data-theme="dark"] h1 span,html[data-theme="dark"] .link-card small{color:#80d7fa}
+html[data-theme="dark"] .skip:focus{color:#0f172a}
+html[data-theme="dark"] .theme-toggle{border-color:#60738b;color:#edf6fa}
+html[data-theme="dark"] .theme-toggle:hover{background:#253852}
+html[data-theme="dark"] .stats strong{color:#edf6fa}
+html[data-theme="dark"] .lesson,html[data-theme="dark"] .link-card,html[data-theme="dark"] .testimonial-frame{background:#18253a;color:#edf6fa}
+html[data-theme="dark"] .testimonials{background:#131d30}
+html[data-theme="dark"] .btn.dark{background:#80d7fa;color:#0f172a}
+html[data-theme="dark"] .cta{color:#0f172a}
+html[data-theme="dark"] .cta .btn.dark{background:#0f172a;color:#fff}
+html[data-theme="dark"] .portal-panel{background:#18253a;color:#edf6fa}
+html[data-theme="dark"] .portal-panel input,html[data-theme="dark"] .portal-panel textarea,html[data-theme="dark"] .portal-panel select{background:#0f172a;color:#edf6fa;border-color:#60738b}
+html[data-theme="dark"] .portal-panel .portal-item button{background:#18253a;color:#edf6fa;border-color:#80d7fa}
+html[data-theme="dark"] .portal-panel .portal-item button:hover{background:#253852}
+html[data-theme="dark"] .text-button,html[data-theme="dark"] .portal-panel a{color:#80d7fa}
+html[data-theme="dark"] .portal-status{color:#c0cfdf}
+@media(max-width:680px){.theme-toggle{font-size:.75rem;padding:.4rem .5rem}nav{gap:.5rem}}
+@media (min-width:681px) and (max-width:900px){.navlinks>a:not(.student-nav){display:none}}
+html[data-theme="dark"] .btn:not(.dark):not(.outline){color:#0f172a}

@@ -3,16 +3,29 @@ body{background:var(--paper)}.portal-layout{display:grid;grid-template-columns:m
 
 /* Student workspace: scoped so the teacher and login keep their existing layout. */
 body:has(#student-view:not([hidden])) {
-  --student-bg: #071b2b;
-  --student-panel: #0d2338;
-  --student-border: #235166;
-  --student-text: #edf6fa;
-  --student-muted: #b1c7d4;
-  --student-accent: #78e4d5;
+  --student-bg: #fff;
+  --student-panel: #f5f8fc;
+  --student-border: #cbdce8;
+  --student-text: #10263c;
+  --student-muted: #465d70;
+  --student-accent: #146577;
+  --student-hover: #eaf5f8;
+  --student-action-text: #fff;
+  --student-placeholder: #526174;
   background: var(--student-bg);
   color: var(--student-text);
 }
-body:has(#student-view:not([hidden])) header { background: #081b2ef5; border-color: #234052; }
+html[data-theme="dark"] body:has(#student-view:not([hidden])) {
+  --student-bg: #0f172a;
+  --student-panel: #18253a;
+  --student-border: #405169;
+  --student-text: #edf6fa;
+  --student-muted: #b1c7d4;
+  --student-accent: #78e4d5;
+  --student-hover: #20344e;
+  --student-action-text: #08232d;
+  --student-placeholder: #b1c7d4;
+}
 .portal-layout:has(#student-view:not([hidden])) { display: block; padding-top: 2rem; }
 .portal-layout:has(#student-view:not([hidden])) .portal-intro { display: none; }
 .portal-layout:has(#student-view:not([hidden])) .portal-status { color: var(--student-accent); margin-top: 1rem; }
@@ -23,13 +36,13 @@ body:has(#student-view:not([hidden])) header { background: #081b2ef5; border-col
 .student-welcome p:last-child { color: var(--student-muted); margin: .6rem 0 0; }
 .student-logout { flex-shrink: 0; border: 1px solid var(--student-border); border-radius: 8px; padding: .65rem 1rem; min-height: 44px; background: transparent; color: var(--student-text); cursor: pointer; }
 .student-logout span { margin-left: .5rem; color: var(--student-accent); }
-.student-logout:hover { background: #17364a; }
+.student-logout:hover { background: var(--student-hover); }
 .student-section-heading { margin: 2.75rem 0 1.5rem; }
 .student-section-heading h2 { font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 650; line-height: 1.25; margin: 0 0 .6rem; }
 .student-section-heading p:last-child { color: var(--student-muted); margin: 0; }
 .student-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
 .student-card { position: relative; min-width: 0; text-align: left; color: var(--student-text); background: var(--student-panel); border: 1px solid var(--student-border); border-radius: 14px; cursor: pointer; padding: 2rem; transition: border-color .16s, background .16s, transform .16s; }
-.student-card:hover { border-color: var(--student-accent); background: #102d43; transform: translateY(-3px); }
+.student-card:hover { border-color: var(--student-accent); background: var(--student-hover); transform: translateY(-3px); }
 .student-card:focus-visible { outline: 3px solid #ffbc75; outline-offset: 5px; }
 .subject-card { min-height: 295px; display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
 .card-illustration { display: block; }
@@ -51,7 +64,7 @@ body:has(#student-view:not([hidden])) header { background: #081b2ef5; border-col
 .student-search { display: grid; gap: .5rem; max-width: 34rem; }
 .student-search label { font-size: .85rem; color: var(--student-muted); }
 .student-search input { width: 100%; min-height: 48px; background: var(--student-panel); color: var(--student-text); border: 1px solid var(--student-border); border-radius: 8px; padding: .75rem 1rem; }
-.student-search input::placeholder { color: #91adbf; }
+.student-search input::placeholder { color: var(--student-placeholder); }
 #student-view #material-count { color: var(--student-muted); font-size: .85rem; margin: 1.5rem 0 .75rem; }
 #student-view .portal-item { background: var(--student-panel); border: 1px solid var(--student-border); border-radius: 10px; padding: 1.5rem; overflow-wrap: anywhere; }
 #student-view .portal-item h3 { color: var(--student-text); font-size: 1.25rem; }
@@ -59,11 +72,11 @@ body:has(#student-view:not([hidden])) header { background: #081b2ef5; border-col
 #student-view .portal-item > p:first-child { color: var(--student-accent); font-size: .75rem; }
 #student-view .actions { display: flex; gap: .75rem; flex-wrap: wrap; }
 #student-view .portal-item button { background: transparent; border-color: var(--student-border); color: var(--student-text); }
-#student-view .portal-item button:first-child { background: var(--student-accent); border-color: var(--student-accent); color: #08232d; }
+#student-view .portal-item button:first-child { background: var(--student-accent); border-color: var(--student-accent); color: var(--student-action-text); }
 #student-view .portal-item button:hover { border-color: var(--student-accent); }
 #student-view .portal-item button:disabled { opacity: .6; cursor: wait; }
 #student-view .portal-empty { color: var(--student-muted); border: 1px dashed var(--student-border); border-radius: 10px; padding: 2rem; }
-.student-footer { margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid #193a4d; text-align: center; color: var(--student-muted); font-size: .8rem; }
+.student-footer { margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid var(--student-border); text-align: center; color: var(--student-muted); font-size: .8rem; }
 @media (max-width: 600px) {
   body:has(#student-view:not([hidden])) header nav { gap: .75rem; font-size: .75rem; }
   body:has(#student-view:not([hidden])) header .brand { gap: .5rem; }
