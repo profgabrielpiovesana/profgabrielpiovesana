@@ -70,6 +70,8 @@ for (const status of ['signed-out', 'error']) test(`pending logout blocks login 
 test('logout clears and cancels a pending download even while library is busy', async () => {
   const f = await concurrentFixture({ role: 'aluno' });
   await f.get('#login-form').fire('submit');
+  await f.get('#subject-matematica').fire('click');
+  await f.get('#category-lista').fire('click');
   const downloadButton = f.get('#material-list').children[0].children[4].children[0];
   const download = downloadButton.fire('click');
   const pendingLogout = f.logout.fire('click');
@@ -82,4 +84,71 @@ test('logout clears and cancels a pending download even while library is busy', 
   f.finishLogout('signed-out'); await pendingLogout;
   assert.equal(f.get('#portal-status').textContent, 'Você saiu da conta.');
   assert.equal(f.get('#student-view').hidden, true);
+});
+
+
+async function navigationFixture(items) {
+  const { documentFixture } = await import('./dom-fixture.mjs');
+  const { createAlunoController } = await import('../../scripts/portal/aluno.mjs');
+  const nodes = new Map();
+  const get = key => { if (!nodes.has(key)) nodes.set(key, new Element()); return nodes.get(key); };
+  const logout = get('#logout-retry');
+  const api = { getAccess: async () => ({ status: 'aluno' }), listMaterials: async () => items };
+  await runInNewContext(`(async () => { ${source} })()`, {
+    document: { ...documentFixture, querySelector: get, querySelectorAll: () => [logout] },
+    location: { href: 'https://example.com/entrar.html' }, URL,
+    getClient: async () => ({}), createPortalApi: () => api,
+    createAuthController: () => ({ login: async () => ({ status: 'aluno', name: 'Ana <teste>' }), logout: async () => ({ status: 'signed-out' }) }),
+    createAlunoController, mountProfessorPanel: () => ({ clear() {} }),
+  });
+  await get('#login-form').fire('submit');
+  return { get, logout };
+}
+const navigationItems = [
+  { id: 'm', subject: 'matematica', type: 'lista', title: 'Revisão', date: '2026-10-26', createdAt: '2026-10-26' },
+  { id: 'f', subject: 'fisica', type: 'aula', title: 'Revisão', date: '2026-10-26', createdAt: '2026-10-26' },
+  { id: 'old', subject: null, type: 'lista', title: 'Antigo', date: '2026-10-25', createdAt: '2026-10-25' },
+];
+test('aluno navega disciplina → categoria → arquivos e limpa filtros ao voltar', async () => {
+  const { get, logout } = await navigationFixture(navigationItems);
+  assert.equal(get('#subject-choices').hidden, false);
+  assert.equal(get('#category-choices').hidden, true);
+  assert.equal(get('#library-files').hidden, true);
+  assert.equal(get('#student-name').textContent, 'Ana <teste>');
+  assert.equal(get('#student-title').focused, true);
+  await get('#subject-matematica').fire('click');
+  assert.equal(get('#category-choices').hidden, false);
+  await get('#category-lista').fire('click');
+  assert.equal(get('#library-files').hidden, false);
+  assert.equal(get('#material-list').children.length, 1);
+  get('#material-search').value = 'ausente'; await get('#material-search').fire('input');
+  assert.equal(get('#filter-empty').hidden, false);
+  await get('#back-categories').fire('click');
+  assert.equal(get('#material-search').value, '');
+  assert.equal(get('#category-choices').hidden, false);
+  await get('#back-subjects').fire('click');
+  await get('#subject-fisica').fire('click');
+  await get('#category-lista').fire('click');
+  assert.equal(get('#material-list').children.length, 0);
+  assert.equal(get('#material-empty').hidden, false);
+  await get('#back-categories').fire('click');
+  await get('#category-aula').fire('click');
+  assert.equal(get('#material-list').children.length, 1);
+  await logout.fire('click');
+  assert.equal(get('#student-name').textContent, '');
+  assert.equal(get('#material-list').children.length, 0);
+  await get('#login-form').fire('submit');
+  assert.equal(get('#subject-choices').hidden, false);
+  assert.equal(get('#library-files').hidden, true);
+});
+test('arquivos legados continuam acessíveis e disciplinas vazias não somem', async () => {
+  const { get } = await navigationFixture(navigationItems);
+  assert.equal(get('#subject-outros').hidden, false);
+  await get('#subject-outros').fire('click'); await get('#category-lista').fire('click');
+  assert.equal(get('#material-list').children[0].children[1].textContent, 'Antigo');
+  const empty = await navigationFixture([]);
+  assert.equal(empty.get('#subject-outros').hidden, true);
+  await empty.get('#subject-fisica').fire('click'); await empty.get('#category-aula').fire('click');
+  assert.equal(empty.get('#material-empty').hidden, false);
+  assert.equal(empty.get('#filter-empty').hidden, true);
 });

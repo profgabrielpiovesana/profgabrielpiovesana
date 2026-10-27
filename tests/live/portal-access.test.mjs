@@ -95,7 +95,7 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
     assert.equal((await request(`/rest/v1/alunos?user_id=eq.${outsider.id}`, anon, professor.token, 'PATCH', { nome: 'Edited' })).status, 204);
     assert.equal((await table('alunos', professor.token, `&user_id=eq.${outsider.id}`)).json()[0].nome, 'Edited');
     assert.equal((await request('/rest/v1/materiais_privados', anon, professor.token, 'POST', {
-      titulo: 'Temporary PDF', tipo: 'lista', data_referencia: '2026-10-23', object_path: scratchPath, nome_original: 'temp.pdf', publicado: false,
+      titulo: 'Temporary PDF', tipo: 'lista', disciplina: 'matematica', data_referencia: '2026-10-23', object_path: scratchPath, nome_original: 'temp.pdf', publicado: false,
     })).status, 201);
     const scratch = (await table('materiais_privados', professor.token, `&object_path=eq.${scratchPath}`)).json();
     assert.equal(scratch.length, 1, 'professor directly creates material');
@@ -119,10 +119,10 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
       user_id: outsider.id, nome: 'Visitor', email: `visitor-${run}@portal.test.invalid`,
     }), 'visitor inserts enrollment');
     denied(await request('/rest/v1/materiais_privados', anon, a.token, 'POST', {
-      titulo: 'Intruder', tipo: 'aula', data_referencia: '2026-10-23', object_path: rejectedPath, nome_original: 'x.pdf',
+      titulo: 'Intruder', tipo: 'aula', disciplina: 'fisica', data_referencia: '2026-10-23', object_path: rejectedPath, nome_original: 'x.pdf',
     }), 'student inserts material');
     denied(await request('/rest/v1/materiais_privados', anon, null, 'POST', {
-      titulo: 'Visitor', tipo: 'aula', data_referencia: '2026-10-23', object_path: rejectedPath, nome_original: 'x.pdf',
+      titulo: 'Visitor', tipo: 'aula', disciplina: 'fisica', data_referencia: '2026-10-23', object_path: rejectedPath, nome_original: 'x.pdf',
     }), 'visitor inserts material');
     denied(await request('/rest/v1/acessos_materiais', anon, a.token, 'POST', { material_id: scratchMaterialId, aluno_id: b.id }), 'student inserts assignment');
     denied(await request('/rest/v1/acessos_materiais', anon, null, 'POST', { material_id: scratchMaterialId, aluno_id: b.id }), 'visitor inserts assignment');
@@ -138,7 +138,7 @@ test('real RLS and Storage revocation using the same JWT', async () => withFixtu
     assert.deepEqual((await storageDownload(professor.token)).bytes, pdf, 'teacher downloads uploaded PDF');
     denied(await storageDownload(a.token), 'unlinked upload');
     const saved = await request('/rest/v1/rpc/save_material', anon, professor.token, 'POST', {
-      p_id: null, p_metadata: { titulo: 'Synthetic PDF', tipo: 'aula', data_referencia: '2026-10-23', object_path: path, nome_original: 'test.pdf', publicado: true }, p_student_ids: [a.id],
+      p_id: null, p_metadata: { titulo: 'Synthetic PDF', tipo: 'aula', disciplina: 'fisica', data_referencia: '2026-10-23', object_path: path, nome_original: 'test.pdf', publicado: true }, p_student_ids: [a.id],
     });
     assert.equal(saved.status, 200, `save material: ${saved.status}`);
     materialId = saved.json();

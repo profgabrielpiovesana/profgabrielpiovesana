@@ -21,7 +21,7 @@ export function createAlunoController({ api, openWindow = () => window.open('', 
   return {
     get items() { return items; },
     clear,
-    filter(query = '', type = '') { return filterMaterials(items, { query, type }); },
+    filter(query = '', type = '', subject = '') { return filterMaterials(items, { query, type, subject }); },
     async refresh() {
       clear();
       const current = generation;

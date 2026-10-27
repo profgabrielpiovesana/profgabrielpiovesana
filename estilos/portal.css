@@ -1,2 +1,88 @@
 body{background:var(--paper)}.portal-layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(1.5rem,6vw,5rem);align-items:start;min-height:calc(100vh - 73px);padding-top:clamp(3rem,7vw,6rem);padding-bottom:4rem}.portal-intro{position:sticky;top:7rem}.portal-intro h1{font-size:clamp(2.5rem,5vw,4rem)}.portal-panel,.portal-library{min-width:0;background:white;border:1px solid var(--line);border-radius:16px;padding:clamp(1.25rem,3vw,2rem)}.portal-panel h2,.portal-library h2{font-size:clamp(1.8rem,3vw,2.5rem);font-weight:500}.portal-panel form{display:grid;gap:.65rem}.portal-panel label,.portal-tools label{font-weight:700}.portal-panel input,.portal-tools input,.portal-tools select{width:100%;min-height:48px;border:1px solid #8a9bad;border-radius:8px;padding:.65rem .8rem;background:#fff;color:var(--dark)}.portal-panel form .btn{justify-self:start;margin-top:.7rem}.text-button{border:0;background:none;color:#176ca6;text-decoration:underline;cursor:pointer;padding:.8rem 0}.portal-status{grid-column:2;margin:0;color:#334155;font-weight:650}.portal-status:empty{display:none}.portal-heading{display:flex;align-items:start;justify-content:space-between;gap:1rem}.portal-heading .eyebrow{margin-bottom:.5rem}.portal-heading .btn{white-space:nowrap}.portal-tools{display:grid;grid-template-columns:minmax(0,1fr) 11rem;gap:.4rem 1rem;align-items:end;margin:1.5rem 0}.portal-tools label{grid-row:1}.portal-list{list-style:none;padding:0;margin:1rem 0;display:grid;gap:1rem}.portal-item{border-top:1px solid var(--line);padding:1rem 0}.portal-item h3{font-size:1.3rem;margin:.4rem 0}.portal-item p{margin:.25rem 0;color:var(--muted)}.portal-item .actions{margin-top:.75rem}.portal-item button{min-height:44px;border:1px solid #176ca6;border-radius:8px;background:#fff;color:#0b5481;font-weight:700;cursor:pointer;padding:.55rem .85rem}.portal-item button:hover{background:#edf7ff}.portal-empty{padding:2rem 0;color:var(--muted)}[hidden]{display:none!important}@media(max-width:800px){.portal-layout{grid-template-columns:1fr}.portal-intro{position:static}.portal-status{grid-column:1}}@media(max-width:440px){.portal-heading{flex-direction:column}.portal-tools{grid-template-columns:1fr}.portal-tools label{grid-row:auto}.portal-panel form .btn{width:100%}}
 .portal-teacher{display:grid;gap:2rem}.portal-teacher section+section{border-top:1px solid var(--line);padding-top:1.5rem}.portal-teacher h3{font-size:1.4rem;margin:.5rem 0}.portal-teacher textarea,.portal-teacher select{width:100%;border:1px solid #8a9bad;border-radius:8px;padding:.65rem .8rem;background:#fff;color:var(--dark)}.portal-teacher fieldset{border:1px solid var(--line);border-radius:8px;margin:1rem 0;padding:.8rem}.portal-teacher fieldset label{display:flex;gap:.65rem;align-items:center;font-weight:400}.portal-teacher input[type="checkbox"]{width:auto;min-height:auto}.portal-teacher .actions{display:flex;flex-wrap:wrap;gap:.6rem}.portal-teacher .portal-list li{overflow-wrap:anywhere}.portal-teacher .portal-list button{margin:.3rem .4rem .3rem 0}.portal-teacher button:disabled{opacity:.55;cursor:wait}
+
+/* Student workspace: scoped so the teacher and login keep their existing layout. */
+body:has(#student-view:not([hidden])) {
+  --student-bg: #071b2b;
+  --student-panel: #0d2338;
+  --student-border: #235166;
+  --student-text: #edf6fa;
+  --student-muted: #b1c7d4;
+  --student-accent: #78e4d5;
+  background: var(--student-bg);
+  color: var(--student-text);
+}
+body:has(#student-view:not([hidden])) header { background: #081b2ef5; border-color: #234052; }
+.portal-layout:has(#student-view:not([hidden])) { display: block; padding-top: 2rem; }
+.portal-layout:has(#student-view:not([hidden])) .portal-intro { display: none; }
+.portal-layout:has(#student-view:not([hidden])) .portal-status { color: var(--student-accent); margin-top: 1rem; }
+#student-view { padding: 0; border: 0; background: transparent; }
+.student-welcome { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; padding: 1.75rem 2rem; border: 1px solid var(--student-border); border-radius: 12px; background: var(--student-panel); }
+#student-view .eyebrow { color: var(--student-accent); font-size: .75rem; letter-spacing: .13em; margin: 0 0 .6rem; }
+.student-welcome h1 { font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 500; margin: 0; line-height: 1.25; overflow-wrap: anywhere; }
+.student-welcome p:last-child { color: var(--student-muted); margin: .6rem 0 0; }
+.student-logout { flex-shrink: 0; border: 1px solid var(--student-border); border-radius: 8px; padding: .65rem 1rem; min-height: 44px; background: transparent; color: var(--student-text); cursor: pointer; }
+.student-logout span { margin-left: .5rem; color: var(--student-accent); }
+.student-logout:hover { background: #17364a; }
+.student-section-heading { margin: 2.75rem 0 1.5rem; }
+.student-section-heading h2 { font-size: clamp(1.6rem, 3vw, 2rem); font-weight: 650; line-height: 1.25; margin: 0 0 .6rem; }
+.student-section-heading p:last-child { color: var(--student-muted); margin: 0; }
+.student-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.student-card { position: relative; min-width: 0; text-align: left; color: var(--student-text); background: var(--student-panel); border: 1px solid var(--student-border); border-radius: 14px; cursor: pointer; padding: 2rem; transition: border-color .16s, background .16s, transform .16s; }
+.student-card:hover { border-color: var(--student-accent); background: #102d43; transform: translateY(-3px); }
+.student-card:focus-visible { outline: 3px solid #ffbc75; outline-offset: 5px; }
+.subject-card { min-height: 295px; display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+.card-illustration { display: block; }
+.card-illustration img { display: block; width: 120px; height: 120px; }
+.card-content { display: flex; flex-direction: column; gap: .45rem; }
+.card-content strong { font-size: 1.65rem; font-weight: 700; line-height: 1.25; }
+.card-kicker { color: var(--student-muted); font-size: .75rem; }
+.card-count { color: var(--student-accent); font-size: .85rem; margin-top: .35rem; }
+.card-arrow { position: absolute; right: 1.5rem; top: 1.5rem; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--student-border); border-radius: 50%; color: var(--student-accent); font-size: 1.25rem; }
+.category-card { min-height: 280px; display: flex; flex-direction: column; gap: 1.25rem; }
+.category-card .card-content > span:not(.card-count) { color: var(--student-muted); font-size: .9rem; }
+.legacy-card { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: 1rem 1.5rem; }
+.legacy-card > span { color: var(--student-muted); font-size: .85rem; }
+.legacy-card > span:last-child { margin-left: auto; }
+.student-breadcrumb { display: flex; justify-content: flex-start; flex-wrap: wrap; gap: .5rem; min-height: 44px; margin-top: 1.5rem; font-size: .9rem; color: var(--student-muted); }
+.student-breadcrumb button { color: var(--student-accent); background: none; border: 0; padding: .6rem .25rem; min-height: 44px; cursor: pointer; text-decoration: underline; text-underline-offset: .25em; }
+.student-breadcrumb button:disabled { color: var(--student-text); text-decoration: none; cursor: default; }
+.student-breadcrumb:not([hidden]) + .student-section-heading { margin-top: 1rem; }
+.student-search { display: grid; gap: .5rem; max-width: 34rem; }
+.student-search label { font-size: .85rem; color: var(--student-muted); }
+.student-search input { width: 100%; min-height: 48px; background: var(--student-panel); color: var(--student-text); border: 1px solid var(--student-border); border-radius: 8px; padding: .75rem 1rem; }
+.student-search input::placeholder { color: #91adbf; }
+#student-view #material-count { color: var(--student-muted); font-size: .85rem; margin: 1.5rem 0 .75rem; }
+#student-view .portal-item { background: var(--student-panel); border: 1px solid var(--student-border); border-radius: 10px; padding: 1.5rem; overflow-wrap: anywhere; }
+#student-view .portal-item h3 { color: var(--student-text); font-size: 1.25rem; }
+#student-view .portal-item p { color: var(--student-muted); }
+#student-view .portal-item > p:first-child { color: var(--student-accent); font-size: .75rem; }
+#student-view .actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+#student-view .portal-item button { background: transparent; border-color: var(--student-border); color: var(--student-text); }
+#student-view .portal-item button:first-child { background: var(--student-accent); border-color: var(--student-accent); color: #08232d; }
+#student-view .portal-item button:hover { border-color: var(--student-accent); }
+#student-view .portal-item button:disabled { opacity: .6; cursor: wait; }
+#student-view .portal-empty { color: var(--student-muted); border: 1px dashed var(--student-border); border-radius: 10px; padding: 2rem; }
+.student-footer { margin: 2.5rem 0 0; padding-top: 1.5rem; border-top: 1px solid #193a4d; text-align: center; color: var(--student-muted); font-size: .8rem; }
+@media (max-width: 600px) {
+  body:has(#student-view:not([hidden])) header nav { gap: .75rem; font-size: .75rem; }
+  body:has(#student-view:not([hidden])) header .brand { gap: .5rem; }
+  body:has(#student-view:not([hidden])) header .brand img { width: 32px; height: 32px; }
+  body:has(#student-view:not([hidden])) header nav > a:last-child { text-align: right; }
+  .student-welcome { align-items: flex-start; flex-direction: column; padding: 1.25rem; gap: 1rem; }
+  .student-welcome p:last-child { font-size: .9rem; }
+  .student-logout { padding: .5rem .75rem; }
+  .student-cards { grid-template-columns: 1fr; gap: 1rem; }
+  .student-card { padding: 1.5rem; }
+  .subject-card { min-height: 0; gap: 1rem; }
+  .card-illustration img { width: 96px; height: 96px; }
+  .card-content strong { font-size: 1.5rem; }
+  .category-card { min-height: 0; }
+  .student-section-heading { margin-top: 2rem; }
+  #student-view .portal-item { padding: 1.25rem; }
+}
+@media (prefers-reduced-motion: reduce) { .student-card { transition: none; } .student-card:hover { transform: none; } }
+
+#student-view h1, #student-view h2, #student-view h3 { font-family: var(--sans); scroll-margin-top: 7rem; }
+body:has(#student-view:not([hidden])) .skip:focus { color: var(--dark); }
+#student-name { color: inherit; }

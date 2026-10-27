@@ -25,13 +25,38 @@ try {
   const teacher = mountProfessorPanel({ root: teacherView, api, message });
   let busy = false;
   let authBusy = false;
+  let subject = '';
+  let category = '';
+  const subjects = { matematica: 'Matemática', fisica: 'Física', outros: 'Outros materiais' };
+  const categories = { lista: 'Listas', aula: 'Materiais de aula' };
+  const countLabel = count => `${count} ${count === 1 ? 'material' : 'materiais'}`;
+  const resetNavigation = () => {
+    subject = ''; category = ''; $('#material-search').value = ''; $('#student-name').textContent = '';
+  };
   const render = () => {
     const list = $('#material-list');
     list.replaceChildren();
-    const filtered = library.filter($('#material-search').value, $('#material-type').value);
-    $('#material-count').textContent = `${filtered.length} ${filtered.length === 1 ? 'material' : 'materiais'}`;
-    $('#material-empty').hidden = library.items.length > 0;
-    $('#filter-empty').hidden = library.items.length === 0 || filtered.length > 0;
+    const inFiles = Boolean(subject && category);
+    $('#subject-choices').hidden = Boolean(subject);
+    $('#category-choices').hidden = !subject || inFiles;
+    $('#library-files').hidden = !inFiles;
+    $('#library-breadcrumb').hidden = !subject;
+    $('#back-categories').textContent = subjects[subject] || '';
+    $('#back-categories').disabled = !category;
+    $('#back-categories').setAttribute('aria-current', category ? 'false' : 'page');
+    $('#breadcrumb-category').textContent = category ? ` / ${categories[category]}` : '';
+    $('#breadcrumb-category').setAttribute('aria-current', category ? 'page' : 'false');
+    $('#library-step').textContent = category ? subjects[subject] : subject ? 'Sua disciplina' : 'Sua biblioteca';
+    $('#library-title').textContent = categories[category] || subjects[subject] || 'Por onde vamos começar?';
+    $('#library-description').textContent = category ? 'Seus arquivos, prontos para estudar.' : subject ? 'O que você quer estudar hoje?' : 'Escolha uma disciplina para acessar seus materiais.';
+    for (const id of ['matematica', 'fisica']) $('#count-' + id).textContent = countLabel(library.filter('', '', id).length);
+    $('#subject-outros').hidden = !library.items.some(item => !item.subject);
+    for (const id of ['lista', 'aula']) $('#count-' + id).textContent = countLabel(library.filter('', id, subject).length);
+    const total = inFiles ? library.filter('', category, subject).length : 0;
+    const filtered = inFiles ? library.filter($('#material-search').value, category, subject) : [];
+    $('#material-count').textContent = countLabel(filtered.length);
+    $('#material-empty').hidden = !inFiles || total > 0;
+    $('#filter-empty').hidden = !inFiles || total === 0 || filtered.length > 0;
     for (const item of filtered) {
       const li = document.createElement('li'); li.className = 'portal-item';
       const type = document.createElement('p'); type.textContent = item.type === 'lista' ? 'Lista' : 'Material de aula';
@@ -59,7 +84,7 @@ try {
     }
   };
   const showAccess = async access => {
-    library.clear();
+    library.clear(); resetNavigation();
     if (access.status === 'professor') { show('teacher'); await teacher.open(); return; }
     if (access.status !== 'aluno') {
       show('login');
@@ -71,8 +96,8 @@ try {
     const result = await library.refresh();
     if (result.status === 'cancelled') return;
     if (result.status !== 'aluno') return showAccess(result);
-    $('#student-name').textContent = access.name || '';
-    show('student'); render(); message('');
+    $('#student-name').textContent = access.name || 'estudante';
+    show('student'); render(); message(''); $('#student-title').focus();
   };
   $('#login-form').addEventListener('submit', async event => {
     event.preventDefault(); if (busy || authBusy) return;
@@ -98,14 +123,21 @@ try {
   for (const button of document.querySelectorAll('[data-logout]')) button.addEventListener('click', async () => {
     if (authBusy) return;
     authBusy = true; $('#login-form button').disabled = true;
-    library.clear(); teacher.clear(); show('login'); render();
+    library.clear(); resetNavigation(); teacher.clear(); show('login'); render();
     const result = await auth.logout();
     authBusy = false; $('#login-form button').disabled = false;
     $('#logout-retry').hidden = result.status === 'signed-out';
     message(result.status === 'signed-out' ? 'Você saiu da conta.' : 'Não foi possível sair. Tente sair novamente.');
   });
   $('#material-search').addEventListener('input', render);
-  $('#material-type').addEventListener('change', render);
+  const navigate = (nextSubject, nextCategory = '') => {
+    subject = nextSubject; category = nextCategory; $('#material-search').value = '';
+    render(); $('#library-title').focus();
+  };
+  for (const id of Object.keys(subjects)) $('#subject-' + id).addEventListener('click', () => navigate(id));
+  for (const id of Object.keys(categories)) $('#category-' + id).addEventListener('click', () => navigate(subject, id));
+  $('#back-subjects').addEventListener('click', () => navigate(''));
+  $('#back-categories').addEventListener('click', () => navigate(subject));
   show('login');
   if (new URL(location.href).searchParams.get('senha') === 'atualizada') {
     history.replaceState(null, '', location.pathname);

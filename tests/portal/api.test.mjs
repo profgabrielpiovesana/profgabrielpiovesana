@@ -32,3 +32,18 @@ test('access is read from server enrollment, not user metadata', async () => {
   active = true;
   assert.equal((await api.getAccess()).status, 'aluno');
 });
+
+
+test('biblioteca do aluno lê disciplina e conserva arquivo legado sem disciplina', async () => {
+  const client = { from() { return { select(fields) {
+    assert.match(fields, /disciplina/);
+    return Promise.resolve({ data: [
+      { material: { id: 'm', titulo: 'Matemática', tipo: 'lista', disciplina: 'matematica', data_referencia: '2026-10-26', created_at: '' } },
+      { material: { id: 'l', titulo: 'Legado', tipo: 'aula', disciplina: null, data_referencia: '2026-10-25', created_at: '' } },
+      { material: null },
+    ], error: null });
+  } }; } };
+  const api = createPortalApi(client);
+  api.getAccess = async () => ({ status: 'aluno' });
+  assert.deepEqual((await api.listMaterials()).map(({id,subject}) => ({id,subject})), [{ id:'m', subject:'matematica' }, { id:'l', subject:null }]);
+});

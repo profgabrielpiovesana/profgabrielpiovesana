@@ -78,20 +78,29 @@ select pg_temp.assert_true((select count(*)=2 from public.alunos), 'professor di
 select pg_temp.assert_denied('insert into public.professores(user_id) values (''44444444-4444-4444-8444-444444444444'')', 'browser cannot create professor');
 select pg_temp.assert_denied('update public.materiais_privados set object_path=''66666666-6666-4666-8666-666666666666.pdf'' where titulo=''PDF A''', 'file path is immutable');
 select public.save_material((select id from public.materiais_privados where titulo='PDF A'),
- '{"titulo":"PDF A","tipo":"aula","descricao":"edited","data_referencia":"2026-10-23","publicado":true}'::jsonb,
+ '{"titulo":"PDF A","tipo":"aula","disciplina":"fisica","descricao":"edited","data_referencia":"2026-10-23","publicado":true}'::jsonb,
  array['22222222-2222-4222-8222-222222222222'::uuid]);
 select pg_temp.assert_true((select descricao='edited' and object_path='55555555-5555-4555-8555-555555555555.pdf' from public.materiais_privados where titulo='PDF A'), 'professor edits metadata without moving PDF');
 
 -- Simulate a withdrawal committed after an old client read publicado=true.
 update public.materiais_privados set publicado=false where titulo='PDF A';
 select public.save_material((select id from public.materiais_privados where titulo='PDF A'),
- '{"titulo":"PDF A","tipo":"aula","data_referencia":"2026-10-23","publicado":true}'::jsonb,
+ '{"titulo":"PDF A","tipo":"aula","disciplina":"fisica","data_referencia":"2026-10-23","publicado":true}'::jsonb,
  array['22222222-2222-4222-8222-222222222222'::uuid]);
 select pg_temp.assert_true((select not publicado from public.materiais_privados where titulo='PDF A'), 'stale edit cannot republish withdrawn material');
 select public.save_material((select id from public.materiais_privados where titulo='PDF A'),
- '{"titulo":"PDF A","tipo":"aula","data_referencia":"2026-10-23"}'::jsonb,
+ '{"titulo":"PDF A","tipo":"aula","disciplina":"fisica","data_referencia":"2026-10-23"}'::jsonb,
  array['22222222-2222-4222-8222-222222222222'::uuid]);
 select pg_temp.assert_true((select not publicado from public.materiais_privados where titulo='PDF A'), 'metadata edit without publication preserves withdrawal');
+select pg_temp.assert_true((select disciplina='fisica' from public.materiais_privados where titulo='PDF A'), 'subject survives save_material');
+select public.save_material(null,
+ '{"titulo":"New classified PDF","tipo":"lista","disciplina":"matematica","data_referencia":"2026-10-23","object_path":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.pdf","nome_original":"new.pdf","publicado":true}'::jsonb,
+ array['22222222-2222-4222-8222-222222222222'::uuid]);
+select pg_temp.assert_true((select disciplina='matematica' from public.materiais_privados where titulo='New classified PDF'), 'new material stores subject');
+delete from public.materiais_privados where titulo='New classified PDF';
+
+select pg_temp.assert_denied($q$select public.save_material((select id from public.materiais_privados where titulo='PDF A'), '{"titulo":"PDF A","tipo":"aula","disciplina":"quimica","data_referencia":"2026-10-23"}'::jsonb, array['22222222-2222-4222-8222-222222222222']::uuid[])$q$, 'invalid subject rejected');
+select pg_temp.assert_denied($q$select public.save_material((select id from public.materiais_privados where titulo='PDF A'), '{"titulo":"PDF A","tipo":"aula","data_referencia":"2026-10-23"}'::jsonb, array['22222222-2222-4222-8222-222222222222']::uuid[])$q$, 'missing subject rejected');
 update public.materiais_privados set publicado=true where titulo='PDF A';
 
 select set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
@@ -180,10 +189,10 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
 select pg_temp.assert_denied(format('select public.save_material(%L, %L::jsonb, array[%L::uuid])',
- (select id from public.materiais_privados where titulo='PDF A'), '{"titulo":"Changed","tipo":"lista","data_referencia":"2026-10-23","publicado":true}', '99999999-9999-4999-8999-999999999999'), 'invalid recipient is rejected');
+ (select id from public.materiais_privados where titulo='PDF A'), '{"titulo":"Changed","tipo":"lista","disciplina":"matematica","data_referencia":"2026-10-23","publicado":true}', '99999999-9999-4999-8999-999999999999'), 'invalid recipient is rejected');
 select pg_temp.assert_true((select titulo='PDF A' from public.materiais_privados where object_path='55555555-5555-4555-8555-555555555555.pdf'), 'invalid recipient rolled back metadata');
 select pg_temp.assert_true((select count(*)=1 from public.acessos_materiais), 'invalid recipient kept assignments');
 select pg_temp.assert_denied(format('select public.save_material(%L, %L::jsonb, array[%L::uuid,%L::uuid])',
- (select id from public.materiais_privados where titulo='PDF A'), '{"titulo":"Changed","tipo":"lista","data_referencia":"2026-10-23","publicado":true}',
+ (select id from public.materiais_privados where titulo='PDF A'), '{"titulo":"Changed","tipo":"lista","disciplina":"matematica","data_referencia":"2026-10-23","publicado":true}',
  '22222222-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222'), 'duplicate recipient rejected');
 rollback;

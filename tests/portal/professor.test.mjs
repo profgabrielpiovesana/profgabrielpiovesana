@@ -4,7 +4,7 @@ import { createPortalApi } from '../../scripts/portal/api.mjs';
 import { createProfessorController } from '../../scripts/portal/professor.mjs';
 
 const pdf = () => Object.assign(new Blob(['%PDF-1.7'], { type: 'application/pdf' }), { name: 'a.pdf' });
-const metadata = { title: 'Aula', type: 'aula', date: '2026-10-24', description: '', studentIds: ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'] };
+const metadata = { subject: 'fisica', title: 'Aula', type: 'aula', date: '2026-10-24', description: '', studentIds: ['11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222'] };
 function fixture({ role = 'professor', uploadError = null, rpcError = null, removeError = null, committed = false, readbackError = null, inactiveRecipient = false, delayedCommit = false } = {}) {
   const calls = [];
   let secondRecipientActive = !inactiveRecipient;
@@ -12,7 +12,7 @@ function fixture({ role = 'professor', uploadError = null, rpcError = null, remo
     auth: { getUser: async () => ({ data: { user: { id: 'teacher' } } }), getSession: async () => ({ data: { session: { access_token: 'token' } } }) },
     from(table) { return {
       select(fields) { calls.push(['select', table, fields]); return this; }, update(value) { calls.push(['update', table, value]); return this; }, eq(column, value) { calls.push(['eq', column, value]); return this; },
-      async maybeSingle() { const last = [...calls].reverse().find(c => c[0] === 'eq'); if (table === 'materiais_privados' && last?.[1] === 'object_path' && readbackError) return {data:null,error:readbackError}; return { data: table === 'professores' && role === 'professor' ? { user_id: 'teacher' } : table === 'materiais_privados' && last?.[1] === 'id' ? { id: 'material-id', titulo: 'Aula', tipo: 'aula', descricao: '', data_referencia: '2026-10-24', publicado: true, acessos_materiais: metadata.studentIds.map(aluno_id => ({ aluno_id })) } : table === 'materiais_privados' && committed ? { id: 'committed' } : null, error: null }; },
+      async maybeSingle() { const last = [...calls].reverse().find(c => c[0] === 'eq'); if (table === 'materiais_privados' && last?.[1] === 'object_path' && readbackError) return {data:null,error:readbackError}; return { data: table === 'professores' && role === 'professor' ? { user_id: 'teacher' } : table === 'materiais_privados' && last?.[1] === 'id' ? { id: 'material-id', titulo: 'Aula', disciplina: 'fisica', tipo: 'aula', descricao: '', data_referencia: '2026-10-24', publicado: true, acessos_materiais: metadata.studentIds.map(aluno_id => ({ aluno_id })) } : table === 'materiais_privados' && committed ? { id: 'committed' } : null, error: null }; },
       async then(resolve) { return resolve({ data: table === 'materiais_privados' ? [] : [], error: null }); },
     }; },
     functions: { async invoke(name, options) { calls.push(['invoke', name, options.body]); if (options.body.action === 'definir-ativo' && options.body.user_id === metadata.studentIds[1]) secondRecipientActive = options.body.ativo; return { data: { alunos: metadata.studentIds.map((user_id, i) => ({ user_id, ativo: i === 0 || secondRecipientActive })), aluno: { user_id: 'id' } }, error: null }; } },
@@ -135,4 +135,16 @@ test('metadata edit never sends a stale publication state after concurrent withd
   api.listStudents = async () => { await api.setMaterialPublished('material-id', false); return listStudents(); };
   await api.updateMaterial('material-id', { metadata, studentIds: metadata.studentIds });
   assert.equal(Object.hasOwn(calls.find(c => c[0] === 'rpc')[2].p_metadata, 'publicado'), false);
+});
+
+
+test('disciplina percorre publicação, leitura e edição sem alterar publicação', async () => {
+  const { api, calls } = fixture();
+  await api.publishMaterial({ metadata, file: pdf(), studentIds: metadata.studentIds });
+  assert.equal(calls.find(c => c[0] === 'rpc')[2].p_metadata.disciplina, 'fisica');
+  assert.equal((await api.getTeacherMaterial('material-id')).subject, 'fisica');
+  await api.updateMaterial('material-id', { metadata: { ...metadata, subject: 'matematica' }, studentIds: metadata.studentIds });
+  const edited = calls.filter(c => c[0] === 'rpc').at(-1)[2].p_metadata;
+  assert.equal(edited.disciplina, 'matematica');
+  assert.equal(Object.hasOwn(edited, 'publicado'), false);
 });

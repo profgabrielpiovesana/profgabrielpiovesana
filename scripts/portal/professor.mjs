@@ -68,7 +68,7 @@ export function mountProfessorPanel({ root, api, message }) {
     for (const material of controller.materials) {
       const li = document.createElement('li'); li.className = 'portal-item';
       const title = document.createElement('strong'); title.textContent = material.title;
-      const info = document.createElement('p'); info.textContent = `${material.type === 'lista' ? 'Lista' : 'Material de aula'} · ${material.date} · ${material.published ? 'Publicado' : 'Retirado'} · ${material.studentIds.length} destinatário(s)`;
+      const info = document.createElement('p'); info.textContent = `${({ matematica: 'Matemática', fisica: 'Física' })[material.subject] || 'Sem disciplina'} · ${material.type === 'lista' ? 'Lista' : 'Material de aula'} · ${material.date} · ${material.published ? 'Publicado' : 'Retirado'} · ${material.studentIds.length} destinatário(s)`;
       const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'Editar';
       edit.addEventListener('click', () => {
         if (material.studentIds.some(id => !controller.students.some(student => student.user_id === id && student.ativo))) {
@@ -78,6 +78,7 @@ export function mountProfessorPanel({ root, api, message }) {
         $('#editing-material-id').value = material.id;
         $('#teacher-material-title').value = material.title;
         $('#teacher-material-type').value = material.type;
+        $('#teacher-material-subject').value = material.subject || '';
         $('#teacher-material-date').value = material.date;
         $('#teacher-material-description').value = material.description;
         $('#teacher-material-file').required = false;
@@ -127,6 +128,7 @@ export function mountProfessorPanel({ root, api, message }) {
     event.preventDefault();
     run(async () => {
       const metadata = { title: $('#teacher-material-title').value, type: $('#teacher-material-type').value,
+        subject: $('#teacher-material-subject').value,
         date: $('#teacher-material-date').value, description: $('#teacher-material-description').value };
       const studentIds = [...root.querySelectorAll('input[name="recipient"]:checked')].map(input => input.value);
       const id = $('#editing-material-id').value;

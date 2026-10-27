@@ -9,7 +9,7 @@ import {
 } from '../../scripts/portal/rules.mjs';
 
 const validMaterial = {
-  title: 'Aula de óptica', type: 'aula', date: '2026-10-23',
+  title: 'Aula de óptica', subject: 'fisica', type: 'aula', date: '2026-10-23',
   description: '  Introdução  ', studentIds: ['aluno-1', 'aluno-2'],
 };
 
@@ -100,4 +100,26 @@ test('normalized student name boundaries match server 160/161', () => {
 });
 test('normalized student email boundaries match server 254/255', () => {
   for (const [length, ok] of [[254,true],[255,false]]) assert.equal(validateStudent({ name: 'Ana', email: ` ${'a'.repeat(length-4)}@b.c ` }).ok, ok);
+});
+
+
+test('disciplina é obrigatória e aceita somente matemática ou física', () => {
+  for (const subject of [undefined, '', 'quimica', null]) {
+    const result = validateMaterial({ ...validMaterial, subject });
+    assert.equal(result.ok, false);
+    assert.ok(result.errors.subject);
+  }
+  for (const subject of ['matematica', 'fisica']) {
+    assert.equal(validateMaterial({ ...validMaterial, subject }).data.subject, subject);
+  }
+});
+
+test('filtra disciplina, categoria e busca sem misturar títulos iguais; preserva legados', () => {
+  const common = { title: 'Revisão', type: 'lista', date: '2026-10-26', createdAt: '2026-10-26' };
+  const items = [{ ...common, id: 'm', subject: 'matematica' }, { ...common, id: 'f', subject: 'fisica' },
+    { ...common, id: 'aula', subject: 'fisica', type: 'aula' }, { ...common, id: 'legacy', subject: null }];
+  assert.deepEqual(filterMaterials(items, { subject: 'fisica', type: 'lista', query: 'revisao' }).map(x => x.id), ['f']);
+  assert.deepEqual(filterMaterials(items, { subject: 'matematica' }).map(x => x.id), ['m']);
+  assert.deepEqual(filterMaterials(items, { subject: 'outros' }).map(x => x.id), ['legacy']);
+  assert.equal(filterMaterials(items, { subject: 'matematica', query: 'ausente' }).length, 0);
 });

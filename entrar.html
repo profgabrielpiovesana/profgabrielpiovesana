@@ -15,9 +15,39 @@
     <form id="recover-form" hidden><label for="recover-email">E-mail da conta</label><input id="recover-email" name="email" type="email" autocomplete="email" required>
       <button class="btn" type="submit">Enviar link de recuperação</button></form>
   </section>
-  <section class="portal-library" id="student-view" aria-labelledby="student-title" hidden><div class="portal-heading"><div><p class="eyebrow">Área do aluno</p><h2 id="student-title">Minha biblioteca</h2><p id="student-name"></p></div><button class="btn outline" type="button" data-logout>Sair</button></div>
-    <div class="portal-tools"><label for="material-search">Pesquisar por título</label><input id="material-search" type="search" autocomplete="off"><label for="material-type">Tipo</label><select id="material-type"><option value="">Todos</option><option value="aula">Material de aula</option><option value="lista">Lista</option></select></div>
-    <p id="material-count" aria-live="polite"></p><ul id="material-list" class="portal-list"></ul><p id="material-empty" class="portal-empty" hidden>Ainda não há materiais liberados para você.</p><p id="filter-empty" class="portal-empty" hidden>Nenhum material corresponde à busca ou ao filtro.</p>
+  <section class="portal-library" id="student-view" aria-labelledby="student-title" hidden>
+    <div class="student-welcome">
+      <div><p class="eyebrow">Seu espaço de estudo</p><h1 id="student-title" tabindex="-1">Olá, <span id="student-name"></span>!</h1><p>Um passo de cada vez, uma ideia de cada vez. Vamos estudar?</p></div>
+      <button class="student-logout" type="button" data-logout>Sair da conta <span aria-hidden="true">↗</span></button>
+    </div>
+    <nav class="student-breadcrumb" aria-label="Caminho da biblioteca" id="library-breadcrumb" hidden>
+      <button id="back-subjects" type="button">Disciplinas</button>
+      <span aria-hidden="true">/</span><button id="back-categories" type="button"></button>
+      <span id="breadcrumb-category"></span>
+    </nav>
+    <div class="student-section-heading"><p class="eyebrow" id="library-step">Sua biblioteca</p><h2 id="library-title" tabindex="-1">Por onde vamos começar?</h2><p id="library-description">Escolha uma disciplina para acessar seus materiais.</p></div>
+    <div class="student-cards" id="subject-choices">
+      <button class="student-card subject-card" id="subject-matematica" type="button">
+        <span class="card-illustration"><img src="imagem/portal/matematica.svg" alt="" width="128" height="128"></span>
+        <span class="card-content"><span class="card-kicker">Raciocinar · Resolver · Descobrir</span><strong>Matemática</strong><span class="card-count" id="count-matematica"></span></span><span class="card-arrow" aria-hidden="true">↗</span>
+      </button>
+      <button class="student-card subject-card" id="subject-fisica" type="button">
+        <span class="card-illustration"><img src="imagem/portal/fisica.svg" alt="" width="128" height="128"></span>
+        <span class="card-content"><span class="card-kicker">Observar · Investigar · Entender</span><strong>Física</strong><span class="card-count" id="count-fisica"></span></span><span class="card-arrow" aria-hidden="true">↗</span>
+      </button>
+      <button class="student-card legacy-card" id="subject-outros" type="button" hidden><strong>Outros materiais</strong><span>Arquivos ainda sem disciplina</span><span aria-hidden="true">→</span></button>
+    </div>
+    <div class="student-cards" id="category-choices" hidden>
+      <button class="student-card category-card" id="category-lista" type="button"><img src="imagem/portal/listas.svg" alt="" width="96" height="96"><span class="card-content"><strong>Listas</strong><span>Hora de colocar as ideias em prática.</span><span class="card-count" id="count-lista"></span></span><span class="card-arrow" aria-hidden="true">↗</span></button>
+      <button class="student-card category-card" id="category-aula" type="button"><img src="imagem/portal/aulas.svg" alt="" width="96" height="96"><span class="card-content"><strong>Materiais de aula</strong><span>Conceitos e anotações para acompanhar e revisar.</span><span class="card-count" id="count-aula"></span></span><span class="card-arrow" aria-hidden="true">↗</span></button>
+    </div>
+    <div id="library-files" hidden>
+      <div class="student-search"><label for="material-search">Pesquisar nesta categoria</label><input id="material-search" type="search" autocomplete="off" placeholder="Título ou descrição do material"></div>
+      <p id="material-count" aria-live="polite"></p><ul id="material-list" class="portal-list"></ul>
+      <p id="material-empty" class="portal-empty" hidden>Ainda não há arquivos liberados nesta categoria. Quando o professor compartilhar um material, ele aparecerá aqui.</p>
+      <p id="filter-empty" class="portal-empty" hidden>Nenhum material encontrado. Tente outra palavra.</p>
+    </div>
+    <p class="student-footer">Aprender é construir, uma ideia de cada vez.</p>
   </section>
   <section class="portal-panel portal-teacher" id="teacher-view" aria-labelledby="teacher-title" hidden>
     <div class="portal-heading"><div><p class="eyebrow">Área do professor</p><h2 id="teacher-title">Painel do professor</h2></div><button class="btn outline" type="button" data-logout>Sair</button></div>
@@ -27,7 +57,7 @@
       <ul id="teacher-students" class="portal-list"></ul><p id="teacher-students-empty" class="portal-empty" hidden>Nenhum aluno matriculado.</p>
     </section>
     <section aria-labelledby="teacher-materials-title"><h3 id="teacher-materials-title">Materiais privados</h3>
-      <form id="teacher-material-form"><input id="editing-material-id" type="hidden"><label for="teacher-material-title">Título</label><input id="teacher-material-title" required maxlength="200"><label for="teacher-material-type">Tipo</label><select id="teacher-material-type"><option value="aula">Material de aula</option><option value="lista">Lista</option></select><label for="teacher-material-date">Data de referência</label><input id="teacher-material-date" type="date" required><label for="teacher-material-description">Descrição</label><textarea id="teacher-material-description" maxlength="2000" rows="3"></textarea><label for="teacher-material-file">PDF (até 20 MB)</label><input id="teacher-material-file" type="file" accept="application/pdf,.pdf" required><fieldset id="teacher-recipients"><legend>Destinatários ativos</legend><div id="teacher-recipient-list"></div></fieldset><div class="actions"><button class="btn dark" type="submit">Publicar material</button><button class="btn outline" type="button" id="cancel-material-edit" hidden>Cancelar edição</button></div></form>
+      <form id="teacher-material-form"><input id="editing-material-id" type="hidden"><label for="teacher-material-title">Título</label><input id="teacher-material-title" required maxlength="200"><label for="teacher-material-subject">Disciplina</label><select id="teacher-material-subject" required><option value="">Selecione a disciplina</option><option value="matematica">Matemática</option><option value="fisica">Física</option></select><label for="teacher-material-type">Tipo</label><select id="teacher-material-type"><option value="aula">Material de aula</option><option value="lista">Lista</option></select><label for="teacher-material-date">Data de referência</label><input id="teacher-material-date" type="date" required><label for="teacher-material-description">Descrição</label><textarea id="teacher-material-description" maxlength="2000" rows="3"></textarea><label for="teacher-material-file">PDF (até 20 MB)</label><input id="teacher-material-file" type="file" accept="application/pdf,.pdf" required><fieldset id="teacher-recipients"><legend>Destinatários ativos</legend><div id="teacher-recipient-list"></div></fieldset><div class="actions"><button class="btn dark" type="submit">Publicar material</button><button class="btn outline" type="button" id="cancel-material-edit" hidden>Cancelar edição</button></div></form>
       <ul id="teacher-materials" class="portal-list"></ul><p id="teacher-materials-empty" class="portal-empty" hidden>Nenhum material publicado ou em edição.</p>
     </section>
   </section>

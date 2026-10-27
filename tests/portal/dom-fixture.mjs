@@ -5,7 +5,7 @@ export class Element {
   replaceChildren(...nodes) { this.children = nodes; }
   addEventListener(type, callback) { this.listeners[type] = callback; }
   async fire(type) { return this.listeners[type]?.({ preventDefault() {} }); }
-  focus() {}
+  focus() { this.focused = true; }
   setAttribute() {}
   removeAttribute() {}
   reset() { for (const node of this.fields || []) { node.value = ''; node.files = []; } }

@@ -88,3 +88,12 @@ Antes de qualquer transição de produção, reler tabelas e objetos: o registro
 Aceitação posterior: 001-005 e ambas Edge Functions implantadas somente em portal-auditoria-testes (ltudhfyhcigmkexrgect). Suíte SQL completa e HTTP real passaram; mesmo endpoint/JWT negado após as três formas de revogação, aluno sem Storage direto, limpeza relida com zero fixtures. 99 testes locais passaram. .env.example aponta a este ambiente descartável; arquivo temporário com credenciais apagado. Produção permanece com 004 e frontend anterior, aguardando rollout autorizado da entrega nova.
 
 Rollout autorizado: função baixar-material e policy005 aplicadas em produção após releitura confirmar zero PDFs; 1 matrícula,1 professor e2 contas preservados. Cliente atualizado deve acompanhar este rollout. O projeto de testes e suas chaves não substituem dados/portal-config.json de produção.
+
+
+## Biblioteca por disciplina — 2026-10-27 (publicação pendente)
+
+A interface local navega por Matemática/Física → Listas/Materiais de aula → PDFs autorizados. O formulário do professor exige Disciplina; os metadados passam por validação no cliente e em `save_material`. A migração incremental `202610260006_material_subject.sql` mantém a RLS e a proteção de publicação da migração 004. Arquivos legados com disciplina nula aparecem em Outros materiais até o professor classificá-los.
+
+Ordem de publicação: aplicar 006, verificar a coluna e o RPC, então publicar o frontend desta branch. Abas antigas do professor precisam ser recarregadas para enviar o novo campo. A migração não altera contas, inscrições nem destinatários. Para reverter apenas o visual, conservar os módulos de API/formulário que enviam disciplina; um rollback integral do frontend exigiria tornar o RPC compatível com clientes antigos antes.
+
+Verificação: 106 testes locais; migração e suíte SQL no projeto isolado dentro de transação com rollback; prévia com API simulada nos tamanhos 320, 768, 1024 e 1440px. Não foi executada nova aceitação HTTP com PDFs reais nesta etapa. Produção não foi alterada.

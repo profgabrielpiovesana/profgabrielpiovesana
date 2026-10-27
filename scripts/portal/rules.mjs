@@ -25,16 +25,18 @@ export function validateStudent({ name, email } = {}) {
   return Object.keys(errors).length ? failure(errors) : success(data);
 }
 
-export function validateMaterial({ title, type, date, description, studentIds } = {}) {
+export function validateMaterial({ title, type, subject, date, description, studentIds } = {}) {
   const data = {
     title: normalizeText(title),
     type: normalizeText(type),
+    subject: normalizeText(subject),
     date: normalizeText(date),
     description: normalizeText(description),
     studentIds: Array.isArray(studentIds) ? studentIds.map(normalizeText) : [],
   };
   const errors = {};
   if (!data.title) errors.title = 'Informe o título.';
+  if (!['matematica', 'fisica'].includes(data.subject)) errors.subject = 'Escolha Matemática ou Física.';
   if (!['aula', 'lista'].includes(data.type)) errors.type = 'Escolha aula ou lista.';
   if (!validDate(data.date)) errors.date = 'Informe uma data válida no formato AAAA-MM-DD.';
   if (!Array.isArray(studentIds) || !data.studentIds.length ||
@@ -59,10 +61,11 @@ export async function validatePdf(file) {
 
 const searchText = value => normalizeText(value).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
-export function filterMaterials(items, { query = '', type = '' } = {}) {
+export function filterMaterials(items, { query = '', type = '', subject = '' } = {}) {
   const search = searchText(query);
   return items
-    .filter(item => (!type || item.type === type) &&
+    .filter(item => (!subject || (subject === 'outros' ? !item.subject : item.subject === subject)) &&
+      (!type || item.type === type) &&
       (!search || searchText(`${item.title ?? ''} ${item.description ?? ''}`).includes(search)))
     .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
 }

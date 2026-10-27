@@ -10,11 +10,11 @@ const teacherOnly = async api => {
   if ((await api.getAccess()).status !== 'professor') throw new Error('Acesso indisponível.');
 };
 const materialMetadata = (data, extra = {}) => ({
-  titulo: data.title, tipo: data.type, descricao: data.description,
+  titulo: data.title, tipo: data.type, disciplina: data.subject, descricao: data.description,
   data_referencia: data.date, ...extra,
 });
 const mappedMaterial = row => ({
-  id: row.id, title: row.titulo, type: row.tipo, description: row.descricao,
+  id: row.id, title: row.titulo, type: row.tipo, subject: row.disciplina, description: row.descricao,
   date: row.data_referencia, published: row.publicado, objectPath: row.object_path,
   originalName: row.nome_original,
   studentIds: (row.acessos_materiais || []).map(a => a.aluno_id),
@@ -49,13 +49,13 @@ export function createPortalApi(client) {
     async listTeacherMaterials() {
       await teacherOnly(this);
       const rows = unwrap(await client.from('materiais_privados')
-        .select('id,titulo,tipo,descricao,data_referencia,publicado,object_path,nome_original,acessos_materiais(aluno_id)'));
+        .select('id,titulo,tipo,disciplina,descricao,data_referencia,publicado,object_path,nome_original,acessos_materiais(aluno_id)'));
       return rows.map(mappedMaterial).sort((a, b) => b.date.localeCompare(a.date));
     },
     async getTeacherMaterial(id) {
       await teacherOnly(this);
       const row = unwrap(await client.from('materiais_privados')
-        .select('id,titulo,tipo,descricao,data_referencia,publicado,object_path,nome_original,acessos_materiais(aluno_id)')
+        .select('id,titulo,tipo,disciplina,descricao,data_referencia,publicado,object_path,nome_original,acessos_materiais(aluno_id)')
         .eq('id', id).maybeSingle());
       if (!row) throw new Error('Material indisponível.');
       return mappedMaterial(row);
@@ -139,9 +139,9 @@ export function createPortalApi(client) {
       const access = await this.getAccess();
       if (access.status !== 'aluno') throw new Error('Acesso indisponível.');
       const rows = unwrap(await client.from('acessos_materiais')
-        .select('material:materiais_privados(id,titulo,tipo,descricao,data_referencia,created_at)'));
+        .select('material:materiais_privados(id,titulo,tipo,disciplina,descricao,data_referencia,created_at)'));
       return rows.filter(row => row.material).map(({ material: m }) => ({
-        id: m.id, title: m.titulo, type: m.tipo, description: m.descricao,
+        id: m.id, title: m.titulo, type: m.tipo, subject: m.disciplina, description: m.descricao,
         date: m.data_referencia, createdAt: m.created_at,
       })).sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));
     },

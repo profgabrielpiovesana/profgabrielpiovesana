@@ -8,9 +8,9 @@ function fixture() {
   const root = new Element(); root.querySelector = $;
   root.querySelectorAll = selector => selector.includes('recipient') ? $('#teacher-recipient-list').querySelectorAll(selector) : [];
   const submit = new Element(); submit.type = 'submit'; $('#teacher-material-form').append(submit);
-  $('#teacher-material-form').fields = ['title','description','file','date','type'].map(key => $(`#teacher-material-${key}`));
+  $('#teacher-material-form').fields = ['title','description','file','date','type','subject'].map(key => $(`#teacher-material-${key}`));
   let students = [{ user_id: 'a', nome: 'Ana', email: 'a@b.c', ativo: true, invitationStatus: 'pending' }], failure = false, finish;
-  const material = { id: 'm', title: 'Saved', type: 'aula', date: '2026-10-24', description: '', published: true, studentIds: ['a'] };
+  const material = { id: 'm', title: 'Saved', subject: 'fisica', type: 'aula', date: '2026-10-24', description: '', published: true, studentIds: ['a'] };
   const api = { listStudents: async () => { if (failure) throw Error('refresh failed'); return students; }, listTeacherMaterials: async () => [material],
     inviteStudent: async () => {}, completeEnrollment: async () => {}, resendInvite: async () => {}, setMaterialPublished: async () => {},
     setStudentActive: async () => { students = students.map(s => ({ ...s, ativo: false })); }, publishMaterial: async () => {}, updateMaterial: async () => {} };
@@ -66,4 +66,17 @@ for (const action of ['save', 'cancel']) test(`${action} resets material form an
   await $(action === 'save' ? '#teacher-material-form' : '#cancel-material-edit').fire(action === 'save' ? 'submit' : 'click'); await settle();
   assert.equal($('#teacher-material-title').value, '');
   assert.equal($('#teacher-recipient-list').querySelectorAll('input[name="recipient"]')[0].checked, false);
+});
+
+
+test('edição carrega e envia disciplina escolhida pelo professor', async () => {
+  const { $, panel, api } = fixture();
+  let saved;
+  api.updateMaterial = async (_id, payload) => { saved = payload; };
+  await panel.open();
+  await $('#teacher-materials').children[0].children[2].fire('click');
+  assert.equal($('#teacher-material-subject').value, 'fisica');
+  $('#teacher-material-subject').value = 'matematica';
+  await $('#teacher-material-form').fire('submit'); await settle();
+  assert.equal(saved.metadata.subject, 'matematica');
 });
