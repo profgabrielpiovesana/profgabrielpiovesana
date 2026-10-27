@@ -21,7 +21,7 @@ html[data-theme="dark"] body:has(#student-view:not([hidden])) {
   --student-border: #405169;
   --student-text: #edf6fa;
   --student-muted: #b1c7d4;
-  --student-accent: #78e4d5;
+  --student-accent: #80d7fa;
   --student-hover: #20344e;
   --student-action-text: #08232d;
   --student-placeholder: #b1c7d4;
