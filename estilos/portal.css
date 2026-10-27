@@ -8,7 +8,7 @@ body:has(#student-view:not([hidden])) {
   --student-border: #cbdce8;
   --student-text: #10263c;
   --student-muted: #465d70;
-  --student-accent: #146577;
+  --student-accent: var(--dark);
   --student-hover: #eaf5f8;
   --student-action-text: #fff;
   --student-placeholder: #526174;
