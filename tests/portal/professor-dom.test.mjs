@@ -62,6 +62,8 @@ test('independent action preserves edited recipient choices instead of restoring
 for (const action of ['save', 'cancel']) test(`${action} resets material form and recipients explicitly`, async () => {
   const { $, panel } = fixture(); await panel.open();
   $('#teacher-material-title').value = 'Draft';
+  $('#teacher-material-file').files = [pdf('draft.pdf')];
+  await $('#teacher-material-file').fire('change');
   $('#teacher-recipient-list').querySelectorAll('input[name="recipient"]')[0].checked = true;
   await $(action === 'save' ? '#teacher-material-form' : '#cancel-material-edit').fire(action === 'save' ? 'submit' : 'click'); await settle();
   assert.equal($('#teacher-material-title').value, '');
@@ -79,4 +81,93 @@ test('edição carrega e envia disciplina escolhida pelo professor', async () =>
   $('#teacher-material-subject').value = 'matematica';
   await $('#teacher-material-form').fire('submit'); await settle();
   assert.equal(saved.metadata.subject, 'matematica');
+});
+
+const pdf = name => Object.assign(new Blob(['%PDF-1.7'], { type: 'application/pdf' }), { name });
+test('remove somente o PDF escolhido e publica os restantes preservando campos', async () => {
+  const { $, panel, api } = fixture(); await panel.open();
+  const sent = []; api.publishMaterial = async payload => sent.push(payload);
+  $('#teacher-material-title').value = 'Rascunho'; $('#teacher-material-subject').value = 'fisica';
+  $('#teacher-recipient-list').children[0].children[0].checked = true;
+  const a = pdf('a.pdf'), b = pdf('b.pdf');
+  $('#teacher-material-file').files = [a,b]; await $('#teacher-material-file').fire('change');
+  assert.equal($('#teacher-selected-files').children.length, 2);
+  await $('#teacher-selected-files').children[0].children[1].fire('click');
+  assert.equal($('#teacher-selected-files').children.length, 1);
+  assert.equal($('#teacher-material-title').value, 'Rascunho');
+  await $('#teacher-material-form').fire('submit'); await settle();
+  assert.deepEqual(sent.map(p => p.file), [b]); assert.deepEqual(sent[0].studentIds, ['a']);
+});
+
+test('cancelar exclusão preserva aluno; confirmar chama exclusão completa', async () => {
+  const { $, panel, api } = fixture(); await panel.open(); const deleted = [];
+  api.deleteStudent = async id => deleted.push(id);
+  globalThis.confirm = () => false;
+  const button = $('#teacher-students').children[0].children.find(n => n.textContent === 'Excluir aluno');
+  assert.ok(button); await button.fire('click'); await settle(); assert.deepEqual(deleted, []);
+  globalThis.confirm = () => true;
+  await button.fire('click'); await settle(); assert.deepEqual(deleted, ['a']);
+});
+
+test('falha no segundo PDF remove só o primeiro já publicado e preserva restante', async () => {
+  const { $, panel, api, messages } = fixture(); await panel.open();
+  const sent = []; api.publishMaterial = async ({file}) => { sent.push(file.name); if (file.name === 'b.pdf') throw Error('Falhou'); };
+  $('#teacher-material-title').value = 'Lote';
+  $('#teacher-material-file').files = [pdf('a.pdf'),pdf('b.pdf'),pdf('c.pdf')]; await $('#teacher-material-file').fire('change');
+  await $('#teacher-material-form').fire('submit'); await settle();
+  assert.deepEqual(sent, ['a.pdf','b.pdf']);
+  assert.equal($('#teacher-selected-files').children.length, 2);
+  assert.equal($('#teacher-material-title').value, 'Lote'); assert.match(messages.at(-1), /1.*publicado.*Falhou/);
+});
+
+
+test('seleção adicional preserva anteriores e remover o último torna PDF obrigatório', async () => {
+  const { $, panel } = fixture(); await panel.open();
+  const a = pdf('a.pdf'), b = pdf('b.pdf');
+  $('#teacher-material-file').files = [a]; await $('#teacher-material-file').fire('change');
+  $('#teacher-material-file').files = [a,b]; await $('#teacher-material-file').fire('change');
+  assert.equal($('#teacher-selected-files').children.length, 2);
+  await $('#teacher-selected-files').children[1].children[1].fire('click');
+  assert.equal($('#teacher-material-file').required, false);
+  await $('#teacher-selected-files').children[0].children[1].fire('click');
+  assert.equal($('#teacher-material-file').required, true);
+  assert.equal($('#teacher-selected-files').children.length, 0);
+});
+
+test('PDF inválido impede todo lote e preserva seleção para correção', async () => {
+  const { $, panel, api, messages } = fixture(); await panel.open(); let sent = 0;
+  api.publishMaterial = async () => sent++;
+  $('#teacher-material-file').files = [pdf('a.pdf'), Object.assign(new Blob(['invalid'], {type:'application/pdf'}), {name:'bad.pdf'})];
+  await $('#teacher-material-file').fire('change'); await $('#teacher-material-form').fire('submit'); await settle();
+  assert.equal(sent, 0); assert.equal($('#teacher-selected-files').children.length, 2);
+  assert.match(messages.at(-1), /bad.pdf/);
+});
+
+test('logout durante envio impede próximos PDFs e limpa seleção', async () => {
+  const { $, panel, api } = fixture(); await panel.open(); let finish; const sent = [];
+  api.publishMaterial = ({file}) => { sent.push(file.name); return new Promise(resolve => {finish = resolve;}); };
+  $('#teacher-material-file').files = [pdf('a.pdf'), pdf('b.pdf')]; await $('#teacher-material-file').fire('change');
+  await $('#teacher-material-form').fire('submit'); await settle();
+  assert.equal($('#teacher-material-file').disabled, true);
+  panel.clear(); finish(); await settle();
+  assert.deepEqual(sent, ['a.pdf']); assert.equal($('#teacher-selected-files').children.length, 0);
+});
+
+test('exclusão com falha mantém aluno e rascunho', async () => {
+  const { $, panel, api, messages } = fixture(); await panel.open(); globalThis.confirm = () => true;
+  api.deleteStudent = async () => {throw Error('Não foi possível excluir');};
+  $('#teacher-material-title').value = 'Rascunho';
+  await $('#teacher-students').children[0].children.find(n => n.textContent === 'Excluir aluno').fire('click'); await settle();
+  assert.equal($('#teacher-students').children.length, 1); assert.equal($('#teacher-material-title').value, 'Rascunho');
+  assert.match(messages.at(-1), /Não foi possível excluir/);
+});
+
+test('logout durante validação do PDF impede início do upload', async () => {
+  const { $, panel, api } = fixture(); await panel.open(); let finish; let sent = 0;
+  const file = pdf('a.pdf'); file.slice = () => ({arrayBuffer: () => new Promise(resolve => {finish = resolve;})});
+  api.publishMaterial = async () => {sent++;};
+  $('#teacher-material-file').files = [file]; await $('#teacher-material-file').fire('change');
+  await $('#teacher-material-form').fire('submit');
+  panel.clear(); finish(new TextEncoder().encode('%PDF-').buffer); await settle();
+  assert.equal(sent, 0);
 });
