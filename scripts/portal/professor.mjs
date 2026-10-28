@@ -1,3 +1,5 @@
+import { validatePdf } from './rules.mjs';
+
 export function createProfessorController(api) {
   let generation = 0;
   const state = { students: [], materials: [], busy: false };
@@ -29,8 +31,34 @@ export function mountProfessorPanel({ root, api, message }) {
   const materialForm = $('#teacher-material-form');
   let generation = 0;
   let busy = false;
+  let selectedFiles = [];
+  const fileInput = $('#teacher-material-file');
   const announce = text => message(text);
+  const renderFiles = () => {
+    const list = $('#teacher-selected-files'); list.replaceChildren();
+    fileInput.required = !$('#editing-material-id').value && selectedFiles.length === 0;
+    for (const file of selectedFiles) {
+      const row = document.createElement('li'); row.className = 'portal-item';
+      const name = document.createElement('span'); name.textContent = file.name;
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Remover';
+      remove.setAttribute('aria-label', `Remover ${file.name}`); remove.disabled = busy;
+      remove.addEventListener('click', () => {
+        if (busy) return;
+        selectedFiles = selectedFiles.filter(item => item !== file); renderFiles();
+        announce(`Arquivo ${file.name} removido da seleção.`); fileInput.focus();
+      });
+      row.append(name, remove); list.append(row);
+    }
+  };
+  fileInput.addEventListener('change', () => {
+    if (busy) return;
+    for (const file of fileInput.files) {
+      if (!selectedFiles.some(item => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) selectedFiles.push(file);
+    }
+    fileInput.value = ''; renderFiles();
+  });
   const clearEdit = () => {
+    selectedFiles = [];
     materialForm.reset();
     $('#editing-material-id').value = '';
     $('#teacher-material-file').required = true;
@@ -38,6 +66,7 @@ export function mountProfessorPanel({ root, api, message }) {
     $('#cancel-material-edit').hidden = true;
     for (const box of root.querySelectorAll('input[name="recipient"]')) box.checked = false;
     materialForm.querySelector('[type="submit"]').textContent = 'Publicar material';
+    renderFiles();
   };
   const render = () => {
     const selected = new Set([...root.querySelectorAll('input[name="recipient"]:checked')].map(box => box.value));
@@ -54,6 +83,12 @@ export function mountProfessorPanel({ root, api, message }) {
       resend.addEventListener('click', () => run(async () => { await api.resendInvite(student.user_id); return 'Convite reenviado.'; }));
       li.append(name, details, toggle);
       if (student.invitationStatus === 'pending') li.append(resend);
+      const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = 'Excluir aluno';
+      remove.addEventListener('click', () => {
+        if (busy || !globalThis.confirm(`Excluir definitivamente ${student.nome} (${student.email})? A conta de login, a matrícula e os acessos serão removidos. Os PDFs serão preservados. Esta ação não pode ser desfeita.`)) return;
+        run(async () => { await api.deleteStudent(student.user_id); return 'Aluno e conta de login excluídos.'; });
+      });
+      li.append(remove);
       studentList.append(li);
     }
     const recipients = $('#teacher-recipient-list'); recipients.replaceChildren();
@@ -81,6 +116,7 @@ export function mountProfessorPanel({ root, api, message }) {
         $('#teacher-material-subject').value = material.subject || '';
         $('#teacher-material-date').value = material.date;
         $('#teacher-material-description').value = material.description;
+        selectedFiles = []; fileInput.value = ''; renderFiles();
         $('#teacher-material-file').required = false;
         $('#teacher-material-file').disabled = true;
         $('#cancel-material-edit').hidden = false;
@@ -99,6 +135,7 @@ export function mountProfessorPanel({ root, api, message }) {
     busy = true; const turn = generation;
     root.setAttribute('aria-busy', 'true');
     for (const button of root.querySelectorAll('button:not([data-logout])')) button.disabled = true;
+    fileInput.disabled = true;
     announce('Salvando...');
     try {
       const success = await action();
@@ -108,11 +145,11 @@ export function mountProfessorPanel({ root, api, message }) {
       if (refreshed.status !== 'ok') throw refreshed.error;
       if (resetMaterial) clearEdit();
       const removed = render();
-      announce(removed ? `${success} Um destinatário desativado foi removido da seleção.` : success);
+      announce(removed ? `${success} Um destinatário removido ou desativado foi removido da seleção.` : success);
     } catch (error) { if (turn === generation) announce(error?.message || 'Não foi possível concluir. Tente novamente.'); }
     finally {
       if (turn === generation) {
-        busy = false; root.removeAttribute('aria-busy');
+        busy = false; fileInput.disabled = !!$('#editing-material-id').value; root.removeAttribute('aria-busy');
         for (const button of root.querySelectorAll('button:not([data-logout])')) button.disabled = false;
       }
     }
@@ -133,8 +170,29 @@ export function mountProfessorPanel({ root, api, message }) {
       const studentIds = [...root.querySelectorAll('input[name="recipient"]:checked')].map(input => input.value);
       const id = $('#editing-material-id').value;
       if (id) { await api.updateMaterial(id, { metadata, studentIds }); return 'Alterações salvas.'; }
-      await api.publishMaterial({ metadata, studentIds, file: $('#teacher-material-file').files[0] });
-      return 'Material publicado.';
+      // Snapshot the batch; only confirmed successes leave the pending selection.
+      const files = selectedFiles.length ? [...selectedFiles] : [...fileInput.files];
+      if (!files.length) throw Error('Selecione pelo menos um PDF.');
+      const turn = generation;
+      for (const file of files) {
+        if (turn !== generation) return '';
+        const checked = await validatePdf(file);
+        if (!checked.ok) throw Error(`${file.name}: ${Object.values(checked.errors).join(' ')}`);
+      }
+      let published = 0;
+      try {
+        for (const file of files) {
+          if (turn !== generation) return '';
+          const title = files.length > 1 ? `${metadata.title} — ${file.name.replace(/\.pdf$/iu, '')}`.slice(0, 200) : metadata.title;
+          await api.publishMaterial({ metadata: { ...metadata, title }, studentIds, file });
+          if (turn !== generation) return '';
+          published++;
+          selectedFiles = selectedFiles.filter(item => item !== file); renderFiles();
+        }
+      } catch (error) {
+        throw Error(`${published} arquivo(s) publicado(s). ${error.message} Os arquivos restantes continuam selecionados.`);
+      }
+      return `${published} arquivo(s) publicado(s).`;
     }, true);
   });
   $('#cancel-material-edit').addEventListener('click', () => { clearEdit(); render(); });

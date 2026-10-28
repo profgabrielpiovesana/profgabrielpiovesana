@@ -45,6 +45,7 @@ export function createPortalApi(client) {
       return (await this.admin('completar-matricula', { nome: checked.data.name, email: checked.data.email })).aluno;
     },
     async resendInvite(id) { return (await this.admin('reenviar-convite', { user_id: id })).aluno; },
+    async deleteStudent(id) { return this.admin('excluir-aluno', { user_id: id }); },
     async setStudentActive(id, active) { return (await this.admin('definir-ativo', { user_id: id, ativo: active })).aluno; },
     async listTeacherMaterials() {
       await teacherOnly(this);

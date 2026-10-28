@@ -40,6 +40,7 @@ const auth = {
     if (error) throw error;
     return data.user;
   },
+  deleteUser: id => value(admin.auth.admin.deleteUser(id, false)),
   inviteUserByEmail: email => admin.auth.admin.inviteUserByEmail(email, { redirectTo }),
 };
 const db = {

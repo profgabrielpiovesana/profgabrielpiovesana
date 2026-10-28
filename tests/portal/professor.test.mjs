@@ -148,3 +148,11 @@ test('disciplina percorre publicação, leitura e edição sem alterar publicaç
   assert.equal(edited.disciplina, 'matematica');
   assert.equal(Object.hasOwn(edited, 'publicado'), false);
 });
+
+
+test('deleteStudent usa Edge Function e bloqueia aluno antes de chamar servidor', async () => {
+  const {api, calls} = fixture(); await api.deleteStudent('id');
+  assert.deepEqual(calls.find(c => c[0] === 'invoke').slice(1), ['gerenciar-alunos', {action:'excluir-aluno', user_id:'id'}]);
+  const student = fixture({role:'aluno'}); await assert.rejects(student.api.deleteStudent('id'), /Acesso/);
+  assert.equal(student.calls.some(c => c[0] === 'invoke'), false);
+});

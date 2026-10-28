@@ -154,3 +154,27 @@ test('listing uses immutable user id when Auth email changes and preserves enrol
   assert.equal((await f.request('reenviar-convite', { user_id: oldId })).status, 409);
   assert.ok(!f.calls.includes('invite'));
 });
+
+test('exclusão completa exige professor e matrícula e protege contas de professores', async () => {
+  const make = ({ teacher = true, targetTeacher = false, exists = true, failure = false } = {}) => {
+    const deleted = [];
+    const handler = createHandler({ allowedOrigins: [origin],
+      auth: { getUser: async () => ({ data: { user: { id: 'prof' } } }), deleteUser: async id => { if (failure) throw Error('delete failed'); deleted.push(id); } },
+      db: { isProfessor: async id => id === 'prof' ? teacher : targetTeacher, findStudentById: async id => exists ? { user_id: id } : null } });
+    return { deleted, send: id => handler(new Request('https://example.test', { method: 'POST', headers: { Origin: origin, Authorization: 'Bearer valid' }, body: JSON.stringify({ action: 'excluir-aluno', user_id: id }) })) };
+  };
+  const ok = make(); assert.equal((await ok.send(oldId)).status, 200); assert.deepEqual(ok.deleted, [oldId]);
+  for (const [opts, status] of [[{ teacher: false },403],[{ targetTeacher: true },409],[{ exists: false },404],[{ failure: true },502]]) {
+    const f = make(opts); assert.equal((await f.send(oldId)).status, status); assert.deepEqual(f.deleted, []);
+  }
+  const invalid = make(); assert.equal((await invalid.send('bad')).status, 400); assert.deepEqual(invalid.deleted, []);
+});
+
+test('exclusão bloqueia a própria conta mesmo se também tiver matrícula', async () => {
+  let checks = 0, deletions = 0;
+  const handler = createHandler({allowedOrigins:[origin],
+    auth:{getUser:async()=>({data:{user:{id:oldId}}}),deleteUser:async()=>{deletions++;}},
+    db:{isProfessor:async()=>++checks===1,findStudentById:async()=>({user_id:oldId})}});
+  const result = await handler(new Request('https://example.test', {method:'POST',headers:{Origin:origin,Authorization:'Bearer valid'},body:JSON.stringify({action:'excluir-aluno',user_id:oldId})}));
+  assert.equal(result.status,409); assert.equal(deletions,0); assert.equal(checks,1);
+});
