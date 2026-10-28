@@ -79,6 +79,17 @@ export function createHandler({ auth, db, allowedOrigins }) {
         if (invited.error || invited.data?.user?.id !== aluno.user_id) return json(502, { error: 'convite_nao_enviado' }, cors);
         return json(200, { aluno: publicStudent(aluno) }, cors);
       }
+      if (action === 'excluir-aluno') {
+        if (!uuid(input.user_id)) return json(400, { error: 'entrada_invalida' }, cors);
+        if (input.user_id === data.user.id || await db.isProfessor(input.user_id, bearer[1])) {
+          return json(409, { error: 'conta_protegida', message: 'Contas de professor não podem ser excluídas pelo painel de alunos.' }, cors);
+        }
+        const aluno = await db.findStudentById(input.user_id);
+        if (!aluno) return json(404, { error: 'aluno_nao_encontrado' }, cors);
+        // Auth deletion cascades to enrollment and assignments, never to the PDFs.
+        await auth.deleteUser(aluno.user_id);
+        return json(200, { deleted: true }, cors);
+      }
       if (action === 'definir-ativo') {
         if (!uuid(input.user_id) || typeof input.ativo !== 'boolean') return json(400, { error: 'entrada_invalida' }, cors);
         const aluno = await db.setActive(input.user_id, input.ativo);
