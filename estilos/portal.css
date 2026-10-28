@@ -99,3 +99,7 @@ html[data-theme="dark"] body:has(#student-view:not([hidden])) {
 #student-view h1, #student-view h2, #student-view h3 { font-family: var(--sans); scroll-margin-top: 7rem; }
 body:has(#student-view:not([hidden])) .skip:focus { color: var(--dark); }
 #student-name { color: inherit; }
+
+#teacher-selected-files .portal-item { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+#teacher-selected-files .portal-item span { min-width: 0; overflow-wrap: anywhere; }
+#teacher-selected-files .portal-item button { flex-shrink: 0; }
