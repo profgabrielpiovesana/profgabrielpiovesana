@@ -36,3 +36,42 @@ test('preferência inválida ou armazenamento indisponível não quebra o seleto
   assert.equal(first.root.dataset.theme, 'dark');
   assert.equal(page({ getItem: () => 'unexpected', setItem() {} }).root.dataset.theme, 'light');
 });
+
+test('widget de depoimentos alterna entre URL clara e escura junto com o tema', () => {
+  const lightUrl = 'https://embed-v2.testimonial.to/c/gabriel-piovesana?id=f6cc8575-c5c7-4d48-aa45-3680b25b8d2d';
+  const darkUrl = 'https://embed-v2.testimonial.to/c/gabriel-piovesana?id=06cff27a-323a-41d4-aa94-fb92486749b7';
+  const iframe = { src: lightUrl };
+  const embedAttrs = new Map([
+    ['data-url', lightUrl],
+    ['data-url-light', lightUrl],
+    ['data-url-dark', darkUrl],
+  ]);
+  const embed = {
+    getAttribute: (k) => embedAttrs.get(k),
+    setAttribute: (k, v) => embedAttrs.set(k, v),
+    querySelector: (sel) => (sel === 'iframe' ? iframe : null),
+  };
+  const root = { dataset: {} };
+  const button = { attributes: {}, listeners: {}, setAttribute(k, v) { this.attributes[k] = v; }, addEventListener(k, fn) { this.listeners[k] = fn; } };
+  const document = {
+    documentElement: root,
+    querySelector: (sel) => (sel === '#theme-toggle' ? button : sel === '.testimonial-to-embed' ? embed : null),
+    addEventListener: (_event, fn) => fn(),
+  };
+  const values = new Map();
+  const storage = { getItem: (k) => values.get(k), setItem: (k, v) => values.set(k, v) };
+
+  runInNewContext(source, { document, localStorage: storage });
+  assert.equal(embedAttrs.get('data-url'), lightUrl);
+  assert.equal(iframe.src, lightUrl);
+
+  button.listeners.click();
+  assert.equal(root.dataset.theme, 'dark');
+  assert.equal(embedAttrs.get('data-url'), darkUrl);
+  assert.equal(iframe.src, darkUrl);
+
+  button.listeners.click();
+  assert.equal(root.dataset.theme, 'light');
+  assert.equal(embedAttrs.get('data-url'), lightUrl);
+  assert.equal(iframe.src, lightUrl);
+});
