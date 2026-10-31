@@ -1,0 +1,26 @@
+{
+  "invite-user": {
+    "subject": "Convite para a área do aluno | Prof. Gabriel Piovesana",
+    "html": "<p>{{ if .Data.nome }}Olá, {{ .Data.nome }}!{{ else }}Olá!{{ end }}</p>\n<h2>Você recebeu um convite</h2>\n\n<p>Você recebeu um convite para criar sua conta na área do aluno do Prof. Gabriel Piovesana. Clique no link abaixo para aceitar o convite e definir sua senha.</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Aceitar convite e definir senha</a></p>"
+  },
+  "reset-password": {
+    "subject": "Recuperação de senha | Prof. Gabriel Piovesana",
+    "html": "<p>{{ if .Data.nome }}Olá, {{ .Data.nome }}!{{ else }}Olá!{{ end }}</p>\n<h2>Redefina sua senha</h2>\n\n<p>Recebemos uma solicitação para redefinir a senha da sua conta na área do aluno do Prof. Gabriel Piovesana.</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Redefinir senha</a></p>\n<p>Se você não solicitou a alteração, pode ignorar este e-mail.</p>"
+  },
+  "confirm-sign-up": {
+    "subject": "Confirme seu cadastro | Prof. Gabriel Piovesana",
+    "html": "<p>{{ if .Data.nome }}Olá, {{ .Data.nome }}!{{ else }}Olá!{{ end }}</p>\n<h2>Confirme seu cadastro</h2>\n\n<p>Clique no link abaixo para confirmar seu e-mail e concluir seu cadastro na área do aluno do Prof. Gabriel Piovesana.</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Confirmar e-mail</a></p>"
+  },
+  "magic-link-or-otp": {
+    "subject": "Seu link de acesso | Prof. Gabriel Piovesana",
+    "html": "<p>{{ if .Data.nome }}Olá, {{ .Data.nome }}!{{ else }}Olá!{{ end }}</p>\n<h2>Seu link de acesso</h2>\n\n<p>Clique no link abaixo para entrar na área do aluno do Prof. Gabriel Piovesana.</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Entrar na área do aluno</a></p>"
+  },
+  "change-email-address": {
+    "subject": "Confirme a alteração de e-mail | Prof. Gabriel Piovesana",
+    "html": "<p>{{ if .Data.nome }}Olá, {{ .Data.nome }}!{{ else }}Olá!{{ end }}</p>\n<h2>Confirme seu novo e-mail</h2>\n\n<p>Clique no link abaixo para confirmar {{ .NewEmail }} como seu novo e-mail.</p>\n<p><a href=\"{{ .ConfirmationURL }}\">Confirmar novo e-mail</a></p>\n<p>Se você não solicitou a alteração, pode ignorar este e-mail.</p>"
+  },
+  "reauthentication": {
+    "subject": "{{ .Token }} é seu código de verificação | Prof. Gabriel Piovesana",
+    "html": "<p>{{ if .Data.nome }}Olá, {{ .Data.nome }}!{{ else }}Olá!{{ end }}</p>\n<h2>Confirme sua identidade</h2>\n\n<p>Use o código abaixo para confirmar sua identidade na área do aluno do Prof. Gabriel Piovesana:</p>\n<p><strong>{{ .Token }}</strong></p>\n<p>Não compartilhe este código.</p>"
+  }
+}
