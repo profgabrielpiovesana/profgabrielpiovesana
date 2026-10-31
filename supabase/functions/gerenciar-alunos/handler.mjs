@@ -43,7 +43,7 @@ export function createHandler({ auth, db, allowedOrigins }) {
         if (await db.findStudentByEmail(email)) return json(409, { error: 'aluno_existente' }, cors);
         const existing = await auth.findUserByEmail(email);
         if (existing?.email_confirmed_at || existing?.confirmed_at) return json(409, { error: 'conta_confirmada' }, cors);
-        const invited = await auth.inviteUserByEmail(email);
+        const invited = await auth.inviteUserByEmail(email, nome);
         if (invited.error || !invited.data?.user?.id) return json(502, { error: 'convite_nao_enviado' }, cors);
         try {
           const aluno = await db.insertStudent({ user_id: invited.data.user.id, nome, email });
@@ -62,6 +62,7 @@ export function createHandler({ auth, db, allowedOrigins }) {
         if (!user.email_confirmed_at && !user.confirmed_at) return json(409, { error: 'conta_nao_confirmada' }, cors);
         if (await db.findStudentById(user.id)) return json(409, { error: 'aluno_existente' }, cors);
         try {
+          await auth.setUserName(user.id, nome);
           const aluno = await db.insertStudent({ user_id: user.id, nome, email });
           return json(201, { aluno: publicStudent(aluno) }, cors);
         } catch {
@@ -75,7 +76,7 @@ export function createHandler({ auth, db, allowedOrigins }) {
         const user = await auth.getUserById(aluno.user_id);
         if (!user || user.email?.toLowerCase() !== aluno.email.toLowerCase()) return json(409, { error: 'conta_inconsistente' }, cors);
         if (user.email_confirmed_at || user.confirmed_at) return json(409, { error: 'conta_confirmada', message: 'Use a recuperação de senha.' }, cors);
-        const invited = await auth.inviteUserByEmail(aluno.email);
+        const invited = await auth.inviteUserByEmail(aluno.email, aluno.nome);
         if (invited.error || invited.data?.user?.id !== aluno.user_id) return json(502, { error: 'convite_nao_enviado' }, cors);
         return json(200, { aluno: publicStudent(aluno) }, cors);
       }
