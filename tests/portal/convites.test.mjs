@@ -11,6 +11,7 @@ function fixture({ professor = true, user = { id: 'prof', user_metadata: { role:
     async getUser(token) { calls.push('getUser'); return token === 'valid' ? { data: { user }, error: null } : { data: { user: null }, error: { message: 'invalid' } }; },
     async findUserByEmail(email) { calls.push('findUserByEmail'); return users.find(u => u.email === email) ?? null; },
     async getUserById(id) { calls.push('getUserById'); return users.find(u => u.id === id) ?? null; },
+    async setUserName(id, nome) { calls.push('setUserName'); const target = users.find(u => u.id === id); if (target) target.user_metadata = { ...target.user_metadata, nome }; },
     async inviteUserByEmail(email) { calls.push('invite'); if (!users.some(u => u.email === email)) users.push({ id: 'new-id', email }); return failInvite ? { data: null, error: { message: 'provider failed' } } : { data: { user: { id: users.find(u => u.email === email)?.id ?? 'new-id', email } }, error: null }; },
   };
   const db = {
@@ -177,4 +178,32 @@ test('exclusão bloqueia a própria conta mesmo se também tiver matrícula', as
     db:{isProfessor:async()=>++checks===1,findStudentById:async()=>({user_id:oldId})}});
   const result = await handler(new Request('https://example.test', {method:'POST',headers:{Origin:origin,Authorization:'Bearer valid'},body:JSON.stringify({action:'excluir-aluno',user_id:oldId})}));
   assert.equal(result.status,409); assert.equal(deletions,0); assert.equal(checks,1);
+});
+
+test('convite e reenvio recebem o nome validado da matrícula para personalizar o email', async () => {
+  const sent = [];
+  let saved;
+  const handler = createHandler({allowedOrigins:[origin],
+    auth:{getUser:async()=>({data:{user:{id:'prof'}}}),findUserByEmail:async()=>null,
+      getUserById:async()=>({id:oldId,email:'ana@example.com'}),
+      inviteUserByEmail:async(email,nome)=>{sent.push({email,nome});return {data:{user:{id:oldId}}};}},
+    db:{isProfessor:async()=>true,findStudentByEmail:async()=>null,
+      insertStudent:async row=>{saved={...row,ativo:true};return saved;},findStudentById:async()=>saved}});
+  const send=(action,fields)=>handler(new Request('https://example.test',{method:'POST',headers:{Origin:origin,Authorization:'Bearer valid'},body:JSON.stringify({action,...fields})}));
+  assert.equal((await send('convidar',{nome:'  Ana Silva  ',email:'ANA@example.com'})).status,201);
+  assert.deepEqual(sent[0],{email:'ana@example.com',nome:'Ana Silva'});
+  assert.equal((await send('reenviar-convite',{user_id:oldId,nome:'Nome adulterado'})).status,200);
+  assert.deepEqual(sent[1],{email:'ana@example.com',nome:'Ana Silva'});
+});
+
+for (const failure of [false,true]) test(`completar matrícula sincroniza nome antes de salvar; falha de metadado=${failure}`, async()=>{
+  const events=[];
+  const handler=createHandler({allowedOrigins:[origin],
+    auth:{getUser:async()=>({data:{user:{id:'prof'}}}),findUserByEmail:async()=>({id:oldId,email_confirmed_at:'2026-10-30'}),
+      setUserName:async(id,nome)=>{events.push(['nome',id,nome]);if(failure)throw Error('metadata unavailable');}},
+    db:{isProfessor:async()=>true,findStudentByEmail:async()=>null,findStudentById:async()=>null,
+      insertStudent:async row=>{events.push(['matricula']);return {...row,ativo:true};}}});
+  const result=await handler(new Request('https://example.test',{method:'POST',headers:{Origin:origin,Authorization:'Bearer valid'},body:JSON.stringify({action:'completar-matricula',nome:'Ana Silva',email:'ana@example.com'})}));
+  assert.equal(result.status,failure?502:201);
+  assert.deepEqual(events,failure?[['nome',oldId,'Ana Silva']]:[['nome',oldId,'Ana Silva'],['matricula']]);
 });
